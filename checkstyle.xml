@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <property name="severity" value="warning"/>
+    <module name="TreeWalker">
+        <!-- Verifica que las clases tengan JavaDocs -->
+        <module name="JavadocType"/>
+        <!-- Verifica el orden de los imports -->
+        <module name="AvoidStarImport"/>
+        <module name="UnusedImports"/>
+        <!-- Limitar longitud de líneas -->
+        <module name="LineLength">
+            <property name="max" value="120"/>
+        </module>
+        <!-- Indentación estándar (4 espacios) -->
+        <module name="Indentation">
+            <property name="basicOffset" value="4"/>
+            <property name="tabWidth" value="4"/>
+        </module>
+        <!-- Nombres de métodos en camelCase -->
+        <module name="MethodName"/>
+        <!-- Verificar que las clases tengan constructores explícitos -->
+        <module name="ExplicitInitialization"/>
+    </module>
+</module>

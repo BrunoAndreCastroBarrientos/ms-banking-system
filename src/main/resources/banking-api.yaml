@@ -1,0 +1,214 @@
+openapi: 3.0.0
+info:
+  title: Bank Account Service
+  description: |
+    Servicio para la gestión de cuentas bancarias de clientes personales y empresariales. 
+    Permite realizar operaciones como consultar saldos, hacer depósitos y retiros, entre otros.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
+paths:
+  /accounts:
+    get:
+      summary: Get all bank accounts
+      description: Obtiene todas las cuentas bancarias del cliente. Se incluye el tipo de cuenta y su saldo.
+      operationId: getAllAccounts
+      responses:
+        '200':
+          description: Lista de todas las cuentas bancarias del cliente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Solicitud incorrecta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+        '404':
+          description: No se encontraron cuentas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+
+    post:
+      summary: Create a new bank account
+      description: Crea una nueva cuenta bancaria para el cliente. El tipo de cuenta y los detalles deben ser proporcionados en el cuerpo de la solicitud.
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        '201':
+          description: Cuenta bancaria creada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Datos de cuenta inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+
+  /accounts/{accountId}:
+    get:
+      summary: Get a specific bank account
+      description: Obtiene la información de una cuenta bancaria específica mediante su ID.
+      operationId: getAccountById
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: ID de la cuenta bancaria a consultar.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Información de la cuenta bancaria solicitada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Solicitud incorrecta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+        '404':
+          description: No se encontró la cuenta bancaria.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+
+    put:
+      summary: Update a bank account
+      description: Actualiza los detalles de una cuenta bancaria existente. El cuerpo de la solicitud debe incluir los datos a actualizar.
+      operationId: updateAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: ID de la cuenta bancaria a actualizar.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        '200':
+          description: Cuenta bancaria actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Datos de cuenta inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+        '404':
+          description: No se encontró la cuenta bancaria.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+
+    delete:
+      summary: Delete a bank account
+      description: Elimina una cuenta bancaria específica. La cuenta debe existir para ser eliminada.
+      operationId: deleteAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: ID de la cuenta bancaria a eliminar.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Cuenta bancaria eliminada correctamente.
+        '400':
+          description: Solicitud incorrecta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+        '404':
+          description: No se encontró la cuenta bancaria.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiExceptionResponse'
+
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          description: El ID único de la cuenta bancaria.
+        accountType:
+          type: string
+          description: El tipo de cuenta (Ahorro, Corriente, Plazo fijo).
+        balance:
+          type: number
+          format: float
+          description: El saldo actual de la cuenta bancaria.
+        currency:
+          type: string
+          description: La moneda de la cuenta bancaria (por ejemplo, USD, EUR).
+        owner:
+          type: string
+          description: El nombre del titular de la cuenta bancaria.
+      required:
+        - id
+        - accountType
+        - balance
+        - currency
+        - owner
+
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Código de estado de la respuesta.
+        message:
+          type: string
+          description: Mensaje descriptivo de la respuesta.
+        data:
+          type: object
+          description: Datos devueltos por el microservicio (si aplica).
+      required:
+        - code
+        - message
+
+    ApiExceptionResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Código de error.
+        message:
+          type: string
+          description: Mensaje de error detallado.
+      required:
+        - code
+        - message
