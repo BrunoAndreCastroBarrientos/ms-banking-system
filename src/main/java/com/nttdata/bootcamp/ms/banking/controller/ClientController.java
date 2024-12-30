@@ -3,10 +3,12 @@ package com.nttdata.bootcamp.ms.banking.controller;
 import com.nttdata.bootcamp.ms.banking.model.request.ClientRequest;
 import com.nttdata.bootcamp.ms.banking.model.response.ClientResponse;
 import com.nttdata.bootcamp.ms.banking.service.ClientService;
+import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -38,12 +40,12 @@ public class ClientController {
      */
     @Operation(summary = "Crear un nuevo cliente")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Cliente creado con éxito"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados")
+            @ApiResponse(responseCode = ConstantUtil.CREATED_CODE, description = "Cliente creado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Datos inválidos proporcionados")
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<ClientResponse> createClient(@RequestBody ClientRequest clientRequest) {
+    public Mono<ClientResponse> createClient(@Valid @RequestBody ClientRequest clientRequest) {
         return clientService.createClient(clientRequest);
     }
 
@@ -56,13 +58,13 @@ public class ClientController {
      */
     @Operation(summary = "Actualizar los detalles de un cliente")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cliente actualizado con éxito"),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+            @ApiResponse(responseCode = ConstantUtil.CREATED_CODE, description = "Cliente actualizado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado")
     })
     @PutMapping("/{clientId}")
     public Mono<ClientResponse> updateClient(
             @PathVariable String clientId,
-            @RequestBody ClientRequest clientRequest
+            @Valid @RequestBody ClientRequest clientRequest
     ) {
         return clientService.updateClient(clientId, clientRequest);
     }
@@ -75,8 +77,8 @@ public class ClientController {
      */
     @Operation(summary = "Eliminar un cliente")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Cliente eliminado con éxito"),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+            @ApiResponse(responseCode = ConstantUtil.DELETED_CODE, description = "Cliente eliminado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado")
     })
     @DeleteMapping("/{clientId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -94,8 +96,8 @@ public class ClientController {
      */
     @Operation(summary = "Obtener los detalles de un cliente por su ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cliente encontrado"),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cliente encontrado"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado")
     })
     @GetMapping("/{clientId}")
     public Mono<ClientResponse> getClientById(@PathVariable String clientId) {
@@ -109,8 +111,8 @@ public class ClientController {
      */
     @Operation(summary = "Obtener todos los clientes")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Clientes encontrados"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Clientes encontrados"),
+            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Error interno del servidor")
     })
     @GetMapping
     public Flux<ClientResponse> getAllClients() {

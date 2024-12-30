@@ -3,10 +3,12 @@ package com.nttdata.bootcamp.ms.banking.controller;
 import com.nttdata.bootcamp.ms.banking.model.request.CreditRequest;
 import com.nttdata.bootcamp.ms.banking.model.response.CreditResponse;
 import com.nttdata.bootcamp.ms.banking.service.CreditService;
+import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +24,8 @@ import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/credit")
-@Tag(name = "Credit", description = "Endpoints for managing credits.")
+@RequestMapping("/credits")
+@Tag(name = "Credits", description = "Endpoints for managing credits.")
 public class CreditController {
 
     private final CreditService creditService;
@@ -38,12 +40,12 @@ public class CreditController {
      */
     @Operation(summary = "Crear un nuevo crédito")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Crédito creado con éxito"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados")
+            @ApiResponse(responseCode = ConstantUtil.CREATED_CODE, description = "Crédito creado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Datos inválidos proporcionados")
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<CreditResponse> createCredit(@RequestBody CreditRequest creditRequest) {
+    public Mono<CreditResponse> createCredit(@Valid @RequestBody CreditRequest creditRequest) {
         return creditService.createCredit(creditRequest);
     }
 
@@ -56,13 +58,13 @@ public class CreditController {
      */
     @Operation(summary = "Actualizar los detalles de un crédito")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Crédito actualizado con éxito"),
-            @ApiResponse(responseCode = "404", description = "Crédito no encontrado")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Crédito actualizado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Crédito no encontrado")
     })
     @PutMapping("/{creditId}")
     public Mono<CreditResponse> updateCredit(
             @PathVariable String creditId,
-            @RequestBody CreditRequest creditRequest
+            @Valid @RequestBody CreditRequest creditRequest
     ) {
         return creditService.updateCredit(creditId, creditRequest);
     }
@@ -75,8 +77,8 @@ public class CreditController {
      */
     @Operation(summary = "Eliminar un crédito")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Crédito eliminado con éxito"),
-            @ApiResponse(responseCode = "404", description = "Crédito no encontrado")
+            @ApiResponse(responseCode = ConstantUtil.DELETED_CODE, description = "Crédito eliminado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Crédito no encontrado")
     })
     @DeleteMapping("/{creditId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -94,8 +96,8 @@ public class CreditController {
      */
     @Operation(summary = "Obtener los detalles de un crédito por su ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Crédito encontrado"),
-            @ApiResponse(responseCode = "404", description = "Crédito no encontrado")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Crédito encontrado"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Crédito no encontrado")
     })
     @GetMapping("/{creditId}")
     public Mono<CreditResponse> getCreditById(@PathVariable String creditId) {
@@ -112,8 +114,8 @@ public class CreditController {
      */
     @Operation(summary = "Obtener los créditos asociados a un cliente")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Créditos encontrados"),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Créditos encontrados"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado")
     })
     @GetMapping("/client/{clientId}")
     public Flux<CreditResponse> getCreditsByClientId(@PathVariable String clientId) {

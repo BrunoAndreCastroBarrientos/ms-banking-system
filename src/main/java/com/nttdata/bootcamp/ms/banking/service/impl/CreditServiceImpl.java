@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -43,29 +44,56 @@ public class CreditServiceImpl implements CreditService {
     }
 
     public Mono<CreditResponse> validatePersonalCredit(String clientId, CreditRequest creditRequest) {
-        return Mono.create(sink -> {
-            // Verificar si ya existe un crédito para el cliente
-            creditRepository.findByClientId(clientId)
-                    .doOnTerminate(() -> sink.success()) // Se garantiza que la creación solo se realice si no existe un crédito
-                    .flatMap(existingCredit -> {
-                        // Lanza un error si el cliente ya tiene un crédito
-                        sink.error(new ApiValidateException("Un cliente personal solo puede tener un crédito"));
-                        return Mono.empty(); // Si el cliente ya tiene un crédito, no hace nada más
-                    })
-                    .switchIfEmpty(
-                            // Si no existe crédito, se crea el nuevo crédito
-                            creditRepository.save(creditRequest.toEntity())  // Guardar el crédito creado
-                                    .map(CreditResponse::fromEntity)  // Convertir la entidad a CreditResponse
-                                    .doOnSuccess(sink::success) // Llama success con el CreditResponse
-                                    .doOnError(sink::error) // Llama error en caso de fallo
-                    );
-        });
+        return clientRepository.findById(clientId) // Consultar los datos del cliente por ID
+                .switchIfEmpty(Mono.error(new ApiValidateException("El cliente no existe.")))
+                .flatMap(cliente -> {
+                    if (!cliente.getType().equals(ClientType.PERSONAL)) {
+                        return Mono.error(new ApiValidateException("El cliente no es de tipo personal."));
+                    }
+                    // Validar si el cliente personal ya tiene un crédito
+                    return creditRepository.findByClientId(clientId)
+                            .hasElements()
+                            .flatMap(hasCredit -> {
+                                if (hasCredit) {
+                                    return Mono.error(new ApiValidateException("Un cliente personal solo puede tener un crédito activo."));
+                                }
+                                // Crear el crédito si no existe uno previo
+                                Credit nuevoCredito = creditRequest.toEntity();
+                                nuevoCredito.setClientId(clientId);
+                                return creditRepository.save(nuevoCredito)
+                                        .map(CreditResponse::fromEntity);
+                            });
+                });
     }
 
     private Mono<CreditResponse> validateBusinessCredit(String clientId, CreditRequest creditRequest) {
-        return creditRepository.save(creditRequest.toEntity())
-                .map(CreditResponse::fromEntity);  // Convertir la entidad a CreditResponse
+        return clientRepository.findById(clientId) // Consultar los datos del cliente por ID
+                .switchIfEmpty(Mono.error(new ApiValidateException("El cliente no existe.")))
+                .flatMap(cliente -> {
+                    if (!cliente.getType().equals(ClientType.EMPRESARIAL)) {
+                        return Mono.error(new ApiValidateException("El cliente no es de tipo empresarial."));
+                    }
+                    // Consultar todos los créditos del cliente empresarial
+                    return creditRepository.findByClientId(clientId)
+                            .collectList()
+                            .flatMap(existingCredits -> {
+                                // Calcular el monto total de los créditos existentes
+                                BigDecimal totalCredits = existingCredits.stream()
+                                        .map(Credit::getAmount)
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                                BigDecimal creditLimit = new BigDecimal("1000000"); // Límite de crédito empresarial
+                                if (totalCredits.add(creditRequest.getAmount()).compareTo(creditLimit) > 0) {
+                                    return Mono.error(new ApiValidateException("El cliente empresarial no puede superar el límite de crédito total de " + creditLimit));
+                                }
+                                // Crear el nuevo crédito
+                                Credit nuevoCredito = creditRequest.toEntity();
+                                nuevoCredito.setClientId(clientId);
+                                return creditRepository.save(nuevoCredito)
+                                        .map(CreditResponse::fromEntity);
+                            });
+                });
     }
+
 
     @Override
     public Mono<CreditResponse> updateCredit(String creditId, CreditRequest creditRequest) {
@@ -91,9 +119,13 @@ public class CreditServiceImpl implements CreditService {
     @Override
     public Mono<Void> deleteCredit(String creditId) {
         return creditRepository.findById(creditId)
-                .flatMap(credit -> creditRepository.delete(credit))
-                .switchIfEmpty(Mono.error(new ApiValidateException("Crédito no encontrado")));
+                .switchIfEmpty(Mono.error(new ApiValidateException("Lo sentimos, crédito no encontrado"))) // Lanza error si no se encuentra
+                .flatMap(credit ->
+                        creditRepository.delete(credit) // Elimina el crédito
+                                .then(Mono.empty())
+                );
     }
+
 
     @Override
     public Mono<CreditResponse> getCreditById(String creditId) {

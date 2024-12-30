@@ -24,11 +24,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountRequest {
-
+    /*
     @NotBlank(message = "El número de cuenta no puede estar vacío.")
     @Size(min = 10, max = 20, message = "El número de cuenta debe tener entre 10 y 20 caracteres.")
     private String accountNumber; // Número de cuenta bancaria.
-
+    */
     @NotNull(message = "El tipo de cuenta no puede ser nulo.")
     private AccountType type; // Tipo de cuenta (Ahorro, Corriente, Plazo Fijo).
 
@@ -60,7 +60,6 @@ public class AccountRequest {
      */
     public Account toEntity() {
         return Account.builder()
-                .accountNumber(this.accountNumber)
                 .type(this.type)
                 .clientId(this.clientId)
                 .balance(this.balance)

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,9 +43,13 @@ public class CreditRequest {
     @PositiveOrZero(message = "El saldo restante debe ser mayor o igual a cero.")
     private BigDecimal remainingBalance;
 
-    private LocalDateTime createdAt;
+    @NotNull(message = "La fecha de creación no puede ser nula.")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime createdAt; // Fecha y hora en que se creó.
 
-    private LocalDateTime updatedAt;
+    @NotNull(message = "La fecha de actualización no puede ser nula.")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime updatedAt; // Fecha y hora en que se actualizó por última vez.
 
     /**
      * Convierte el CreditRequest a una entidad Credit.

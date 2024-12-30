@@ -47,12 +47,19 @@ public class AccountServiceImpl implements AccountService {
                 .switchIfEmpty(Mono.error(new ApiValidateException("Cliente no encontrado")));
     }
 
+    public String generateAccountNumber() {
+        UUID uuid = UUID.randomUUID();
+        return uuid.toString().replace("-", "").substring(0, 20).toUpperCase();
+    }
+
     private Mono<AccountResponse> validatePersonalAccount(AccountRequest accountRequest) {
+        Account account = accountRequest.toEntity();
+        account.setAccountNumber(generateAccountNumber());
         return accountRepository.findByClientId(accountRequest.getClientId())
                 .collectList()
                 .flatMap(accounts -> {
                     if (accountRequest.getType() == AccountType.PLAZO_FIJO || accounts.size() < 1) {
-                        return accountRepository.save(accountRequest.toEntity())
+                        return accountRepository.save(account)
                                 .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
                     } else {
                         return Mono.error(new ApiValidateException("El cliente personal solo puede tener una cuenta"));
@@ -64,7 +71,9 @@ public class AccountServiceImpl implements AccountService {
         if (accountRequest.getType() == AccountType.AHORRO || accountRequest.getType() == AccountType.PLAZO_FIJO) {
             return Mono.error(new ApiValidateException("El cliente empresarial no puede tener cuentas de ahorro o plazo fijo"));
         }
-        return accountRepository.save(accountRequest.toEntity())
+        Account account = accountRequest.toEntity();
+        account.setAccountNumber(generateAccountNumber());
+        return accountRepository.save(account)
                 .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
     }
 
@@ -72,7 +81,6 @@ public class AccountServiceImpl implements AccountService {
     public Mono<AccountResponse> updateAccount(String accountId, AccountRequest accountRequest) {
         return accountRepository.findById(accountId)
                 .flatMap(existingAccount -> {
-                    existingAccount.setAccountNumber(accountRequest.getAccountNumber());
                     existingAccount.setType(accountRequest.getType());
                     existingAccount.setBalance(accountRequest.getBalance());
                     existingAccount.setMaintenanceFee(accountRequest.getMaintenanceFee());
@@ -87,9 +95,10 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Mono<Void> deleteAccount(String accountId) {
         return accountRepository.findById(accountId)
-                .flatMap(account -> accountRepository.delete(account))
-                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada"))) // Validamos si la cuenta existe
+                .flatMap(account -> accountRepository.delete(account));
     }
+
 
     @Override
     public Mono<AccountResponse> getAccountById(String accountId) {

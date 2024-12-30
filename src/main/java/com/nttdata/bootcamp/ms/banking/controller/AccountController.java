@@ -3,10 +3,12 @@ package com.nttdata.bootcamp.ms.banking.controller;
 import com.nttdata.bootcamp.ms.banking.model.request.AccountRequest;
 import com.nttdata.bootcamp.ms.banking.model.response.AccountResponse;
 import com.nttdata.bootcamp.ms.banking.service.AccountService;
+import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -41,12 +43,12 @@ public class AccountController {
      */
     @Operation(summary = "Crear una cuenta bancaria")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Cuenta creada con éxito"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados, posiblemente debido a reglas de negocio")
+            @ApiResponse(responseCode = ConstantUtil.CREATED_CODE, description = "Cuenta creada con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Datos inválidos proporcionados, posiblemente debido a reglas de negocio")
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<AccountResponse> createAccount(@RequestBody AccountRequest accountRequest) {
+    public Mono<AccountResponse> createAccount(@Valid @RequestBody AccountRequest accountRequest) {
         return accountService.createAccount(accountRequest);
     }
 
@@ -63,13 +65,13 @@ public class AccountController {
      */
     @Operation(summary = "Actualizar una cuenta bancaria")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cuenta actualizada con éxito"),
-            @ApiResponse(responseCode = "404", description = "Cuenta no encontrada o no se cumplen las reglas de negocio para actualización")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta actualizada con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o no se cumplen las reglas de negocio para actualización")
     })
     @PutMapping("/{accountId}")
     public Mono<AccountResponse> updateAccount(
             @PathVariable String accountId,
-            @RequestBody AccountRequest accountRequest
+            @Valid @RequestBody AccountRequest accountRequest
     ) {
         return accountService.updateAccount(accountId, accountRequest);
     }
@@ -86,8 +88,8 @@ public class AccountController {
      */
     @Operation(summary = "Eliminar una cuenta bancaria")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Cuenta eliminada con éxito"),
-            @ApiResponse(responseCode = "404", description = "Cuenta no encontrada o vinculada a productos activos")
+            @ApiResponse(responseCode = ConstantUtil.DELETED_CODE, description = "Cuenta eliminada con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o vinculada a productos activos")
     })
     @DeleteMapping("/{accountId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -107,8 +109,8 @@ public class AccountController {
      */
     @Operation(summary = "Obtener los detalles de una cuenta bancaria")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cuenta encontrada"),
-            @ApiResponse(responseCode = "404", description = "Cuenta no encontrada o acceso no autorizado")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta encontrada"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o acceso no autorizado")
     })
     @GetMapping("/{accountId}")
     public Mono<AccountResponse> getAccountById(@PathVariable String accountId) {
@@ -127,8 +129,8 @@ public class AccountController {
      */
     @Operation(summary = "Obtener todas las cuentas asociadas a un cliente")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cuentas encontradas"),
-            @ApiResponse(responseCode = "404", description = "Cliente no encontrado o no tiene cuentas asociadas")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuentas encontradas"),
+            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado o no tiene cuentas asociadas")
     })
     @GetMapping("/client/{clientId}")
     public Flux<AccountResponse> getAccountsByClientId(@PathVariable String clientId) {
@@ -148,8 +150,8 @@ public class AccountController {
      */
     @Operation(summary = "Realizar un depósito en una cuenta bancaria")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Depósito realizado con éxito"),
-            @ApiResponse(responseCode = "400", description = "Monto de depósito inválido o violación de reglas de negocio (como límite de saldo o condiciones de cuenta a plazo fijo)")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Depósito realizado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Monto de depósito inválido o violación de reglas de negocio (como límite de saldo o condiciones de cuenta a plazo fijo)")
     })
     @PostMapping("/{accountId}/deposit")
     public Mono<AccountResponse> deposit(
@@ -172,8 +174,8 @@ public class AccountController {
      */
     @Operation(summary = "Realizar un retiro de una cuenta bancaria")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Retiro realizado con éxito"),
-            @ApiResponse(responseCode = "400", description = "Fondos insuficientes o no se cumple con las restricciones de la cuenta")
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Retiro realizado con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o no se cumple con las restricciones de la cuenta")
     })
     @PostMapping("/{accountId}/withdraw")
     public Mono<AccountResponse> withdraw(

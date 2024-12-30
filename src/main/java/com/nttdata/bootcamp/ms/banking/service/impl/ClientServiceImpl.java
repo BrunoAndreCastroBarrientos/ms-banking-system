@@ -45,8 +45,8 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Mono<Void> deleteClient(String clientId) {
         return clientRepository.findById(clientId)
-                .flatMap(client -> clientRepository.delete(client))
-                .switchIfEmpty(Mono.error(new ApiValidateException("Cliente no encontrado")));
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cliente no encontrado"))) // Validamos si el cliente existe
+                .flatMap(client -> clientRepository.delete(client));
     }
 
     @Override
