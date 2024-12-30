@@ -42,10 +42,7 @@ public class AccountController {
      * @return Mono con la respuesta de la cuenta creada, incluyendo los detalles de la cuenta creada.
      */
     @Operation(summary = "Crear una cuenta bancaria")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.CREATED_CODE, description = "Cuenta creada con éxito"),
-            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Datos inválidos proporcionados, posiblemente debido a reglas de negocio")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.CREATED_CODE, description = "Cuenta creada con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Datos inválidos proporcionados, posiblemente debido a reglas de negocio")})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<AccountResponse> createAccount(@Valid @RequestBody AccountRequest accountRequest) {
@@ -59,20 +56,14 @@ public class AccountController {
      * mientras que los clientes empresariales solo pueden modificar cuentas corrientes.
      * </p>
      *
-     * @param accountId El ID de la cuenta a actualizar.
+     * @param accountId      El ID de la cuenta a actualizar.
      * @param accountRequest Datos de la cuenta actualizada, incluyendo tipo de cuenta y modificaciones del saldo.
      * @return Mono con la respuesta de la cuenta actualizada, incluyendo los nuevos detalles de la cuenta.
      */
     @Operation(summary = "Actualizar una cuenta bancaria")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta actualizada con éxito"),
-            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o no se cumplen las reglas de negocio para actualización")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta actualizada con éxito"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o no se cumplen las reglas de negocio para actualización")})
     @PutMapping("/{accountId}")
-    public Mono<AccountResponse> updateAccount(
-            @PathVariable String accountId,
-            @Valid @RequestBody AccountRequest accountRequest
-    ) {
+    public Mono<AccountResponse> updateAccount(@PathVariable String accountId, @Valid @RequestBody AccountRequest accountRequest) {
         return accountService.updateAccount(accountId, accountRequest);
     }
 
@@ -87,10 +78,7 @@ public class AccountController {
      * @return Mono vacío indicando que la cuenta fue eliminada con éxito.
      */
     @Operation(summary = "Eliminar una cuenta bancaria")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.DELETED_CODE, description = "Cuenta eliminada con éxito"),
-            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o vinculada a productos activos")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.DELETED_CODE, description = "Cuenta eliminada con éxito"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o vinculada a productos activos")})
     @DeleteMapping("/{accountId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteAccount(@PathVariable String accountId) {
@@ -108,10 +96,7 @@ public class AccountController {
      * @return Mono con la respuesta de la cuenta encontrada, incluyendo todos los detalles de la cuenta.
      */
     @Operation(summary = "Obtener los detalles de una cuenta bancaria")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta encontrada"),
-            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o acceso no autorizado")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta encontrada"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o acceso no autorizado")})
     @GetMapping("/{accountId}")
     public Mono<AccountResponse> getAccountById(@PathVariable String accountId) {
         return accountService.getAccountById(accountId);
@@ -128,10 +113,7 @@ public class AccountController {
      * @return Flux con las cuentas asociadas al cliente, considerando las restricciones de tipo de cuenta por cliente.
      */
     @Operation(summary = "Obtener todas las cuentas asociadas a un cliente")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuentas encontradas"),
-            @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado o no tiene cuentas asociadas")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuentas encontradas"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado o no tiene cuentas asociadas")})
     @GetMapping("/client/{clientId}")
     public Flux<AccountResponse> getAccountsByClientId(@PathVariable String clientId) {
         return accountService.getAccountsByClientId(clientId);
@@ -145,19 +127,13 @@ public class AccountController {
      * </p>
      *
      * @param accountId El ID de la cuenta donde se realizará el depósito.
-     * @param amount El monto a depositar.
+     * @param amount    El monto a depositar.
      * @return Mono con la respuesta de la cuenta después del depósito, mostrando el saldo actualizado.
      */
     @Operation(summary = "Realizar un depósito en una cuenta bancaria")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Depósito realizado con éxito"),
-            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Monto de depósito inválido o violación de reglas de negocio (como límite de saldo o condiciones de cuenta a plazo fijo)")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Depósito realizado con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Monto de depósito inválido o violación de reglas de negocio (como límite de saldo o condiciones de cuenta a plazo fijo)")})
     @PostMapping("/{accountId}/deposit")
-    public Mono<AccountResponse> deposit(
-            @PathVariable String accountId,
-            @RequestParam BigDecimal amount
-    ) {
+    public Mono<AccountResponse> deposit(@PathVariable String accountId, @RequestParam BigDecimal amount) {
         return accountService.deposit(accountId, amount);
     }
 
@@ -169,19 +145,13 @@ public class AccountController {
      * </p>
      *
      * @param accountId El ID de la cuenta de la que se realizará el retiro.
-     * @param amount El monto a retirar.
+     * @param amount    El monto a retirar.
      * @return Mono con la respuesta de la cuenta después del retiro, mostrando el saldo actualizado.
      */
     @Operation(summary = "Realizar un retiro de una cuenta bancaria")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Retiro realizado con éxito"),
-            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o no se cumple con las restricciones de la cuenta")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Retiro realizado con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o no se cumple con las restricciones de la cuenta")})
     @PostMapping("/{accountId}/withdraw")
-    public Mono<AccountResponse> withdraw(
-            @PathVariable String accountId,
-            @RequestParam BigDecimal amount
-    ) {
+    public Mono<AccountResponse> withdraw(@PathVariable String accountId, @RequestParam BigDecimal amount) {
         return accountService.withdraw(accountId, amount);
     }
 
@@ -193,22 +163,15 @@ public class AccountController {
      * </p>
      *
      * @param fromAccountId El ID de la cuenta desde la cual se realizará la transferencia.
-     * @param toAccountId El ID de la cuenta a la cual se transferirán los fondos.
-     * @param amount El monto a transferir.
+     * @param toAccountId   El ID de la cuenta a la cual se transferirán los fondos.
+     * @param amount        El monto a transferir.
      * @return Mono con la respuesta de la cuenta de origen y la cuenta destino después de la transferencia, mostrando
-     *         el saldo actualizado.
+     * el saldo actualizado.
      */
     @Operation(summary = "Realizar una transferencia entre cuentas bancarias")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Transferencia realizada con éxito"),
-            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o problemas con las cuentas")
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Transferencia realizada con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o problemas con las cuentas")})
     @PostMapping("/transfer")
-    public Mono<Void> transfer(
-            @RequestParam String fromAccountId,
-            @RequestParam String toAccountId,
-            @RequestParam BigDecimal amount
-    ) {
+    public Mono<Void> transfer(@RequestParam String fromAccountId, @RequestParam String toAccountId, @RequestParam BigDecimal amount) {
         return accountService.transfer(fromAccountId, toAccountId, amount);
     }
 

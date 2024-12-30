@@ -147,18 +147,21 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>3.1.1</version> <!-- Usa la versión más reciente compatible -->
+				<configuration>
+					<configLocation>google_checks.xml</configLocation> <!-- Archivo de configuración de Checkstyle -->
+					<encoding>UTF-8</encoding>
+					<consoleOutput>true</consoleOutput> <!-- Imprime los resultados en consola -->
+					<failsOnError>true</failsOnError> <!-- Hace que la build falle si hay errores -->
+				</configuration>
 				<executions>
 					<execution>
-						<phase>validate</phase>
+						<phase>validate</phase> <!-- Se ejecutará en la fase validate de Maven -->
 						<goals>
 							<goal>check</goal>
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<configLocation>google_checks.xml</configLocation>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>

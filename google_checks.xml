@@ -5,16 +5,14 @@
 
 <module name="Checker">
     <property name="severity" value="warning"/>
+
+    <!-- Módulo TreeWalker para reglas que requieren navegar a través de árboles de sintaxis -->
     <module name="TreeWalker">
         <!-- Verifica que las clases tengan JavaDocs -->
         <module name="JavadocType"/>
         <!-- Verifica el orden de los imports -->
         <module name="AvoidStarImport"/>
         <module name="UnusedImports"/>
-        <!-- Limitar longitud de líneas -->
-        <module name="LineLength">
-            <property name="max" value="120"/>
-        </module>
         <!-- Indentación estándar (4 espacios) -->
         <module name="Indentation">
             <property name="basicOffset" value="4"/>
@@ -24,5 +22,10 @@
         <module name="MethodName"/>
         <!-- Verificar que las clases tengan constructores explícitos -->
         <module name="ExplicitInitialization"/>
+    </module>
+
+    <!-- Módulo independiente para la verificación de la longitud de las líneas -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
     </module>
 </module>
