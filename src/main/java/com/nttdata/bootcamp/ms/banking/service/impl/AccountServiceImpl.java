@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,110 +30,102 @@ public class AccountServiceImpl implements AccountService {
     private final ClientRepository clientRepository;
 
     @Override
-    public Mono<AccountResponse> createAccount(AccountRequest request) {
-        // Generar número de cuenta si no está presente
-        request.setAccountNumber(
-                Optional.ofNullable(request.getAccountNumber()).orElseGet(this::generateAccountNumber));
-
-        // Establecer hasActiveTransactions como false si no está definido
-        request.setHasActiveTransactions(
-                Optional.ofNullable(request.getHasActiveTransactions()).orElse(false));
-
-        return clientRepository.findById(request.getClientId())
-                .switchIfEmpty(Mono.error(new ApiValidateException("Client not found")))
-                .flatMap(client -> validateAccountForClientType(client, request.toEntity()))
-                .flatMap(accountRepository::save)
-                .doOnError(ex -> log.error("Error creating account: {}", ex.getMessage()))
-                .onErrorMap(ex -> new ApiValidateException("Error creating account", ex))
-                .map(AccountResponse::fromEntity);
-    }
-
-    private String generateAccountNumber() {
-        return UUID.randomUUID().toString();
-    }
-
-    private Mono<Account> validateAccountForClientType(Client client, Account account) {
-        return switch (client.getType()) {
-            case PERSONAL -> validatePersonalClientAccount(account);
-            case EMPRESARIAL -> validateBusinessClientAccount(account);
-            default -> Mono.error(new ApiValidateException("Invalid client type"));
-        };
-    }
-
-    private Mono<Account> validatePersonalClientAccount(Account account) {
-        return accountRepository.findByClientIdAndType(account.getClientId(), account.getType())
-                .hasElement()
-                .flatMap(exists -> exists
-                        ? Mono.error(new ApiValidateException("Client already has this type of account"))
-                        : Mono.just(account));
-    }
-
-    private Mono<Account> validateBusinessClientAccount(Account account) {
-        if (account.getType() == AccountType.AHORRO || account.getType() == AccountType.PLAZO_FIJO) {
-            return Mono.error(new ApiValidateException("Business clients cannot have savings or fixed-term accounts"));
-        }
-        return Mono.just(account);
-    }
-
-    @Override
-    public Mono<AccountResponse> getAccountByNumber(String accountNumber) {
-        return accountRepository.findByAccountNumber(accountNumber)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Account not found")))
-                .map(AccountResponse::fromEntity);
-    }
-
-    @Override
-    public Mono<Void> deleteAccountById(String accountId) {
-        return accountRepository.findById(accountId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Account not found")))
-                .flatMap(account -> accountRepository.deleteById(accountId));
-    }
-
-    @Override
-    public Mono<AccountResponse> updateAccount(String accountId, AccountRequest account) {
-        return accountRepository.findById(accountId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Account not found")))
-                .flatMap(existingAccount -> {
-                    existingAccount.setBalance(account.getBalance());
-                    existingAccount.setType(account.getType());
-                    return accountRepository.save(existingAccount);
+    public Mono<AccountResponse> createAccount(AccountRequest accountRequest) {
+        return clientRepository.findById(accountRequest.getClientId())
+                .flatMap(client -> {
+                    // Validación de reglas de negocio para clientes personales y empresariales
+                    if (client.getType() == ClientType.PERSONAL) {
+                        // Validación de cuentas permitidas para clientes personales
+                        return validatePersonalAccount(accountRequest);
+                    } else if (client.getType() == ClientType.EMPRESARIAL) {
+                        // Validación de cuentas permitidas para clientes empresariales
+                        return validateBusinessAccount(accountRequest);
+                    } else {
+                        return Mono.error(new ApiValidateException("Tipo de cliente no permitido"));
+                    }
                 })
-                .map(AccountResponse::fromEntity);
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cliente no encontrado")));
     }
 
-    @Override
-    public Mono<Double> getAccountBalance(String accountId) {
-        return accountRepository.findById(accountId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Account not found")))
-                .map(Account::getBalance);
-    }
-
-    @Override
-    public Mono<Account> depositToAccount(String accountId, double amount) {
-        return accountRepository.findById(accountId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Account not found")))
-                .flatMap(account -> {
-                    if (amount <= 0) {
-                        return Mono.error(new ApiValidateException("Deposit amount must be greater than zero"));
+    private Mono<AccountResponse> validatePersonalAccount(AccountRequest accountRequest) {
+        return accountRepository.findByClientId(accountRequest.getClientId())
+                .collectList()
+                .flatMap(accounts -> {
+                    if (accountRequest.getType() == AccountType.PLAZO_FIJO || accounts.size() < 1) {
+                        return accountRepository.save(accountRequest.toEntity())
+                                .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
+                    } else {
+                        return Mono.error(new ApiValidateException("El cliente personal solo puede tener una cuenta"));
                     }
-                    account.setBalance(account.getBalance() + amount);
-                    return accountRepository.save(account);
                 });
     }
 
+    private Mono<AccountResponse> validateBusinessAccount(AccountRequest accountRequest) {
+        if (accountRequest.getType() == AccountType.AHORRO || accountRequest.getType() == AccountType.PLAZO_FIJO) {
+            return Mono.error(new ApiValidateException("El cliente empresarial no puede tener cuentas de ahorro o plazo fijo"));
+        }
+        return accountRepository.save(accountRequest.toEntity())
+                .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
+    }
+
     @Override
-    public Mono<Account> withdrawFromAccount(String accountId, double amount) {
+    public Mono<AccountResponse> updateAccount(String accountId, AccountRequest accountRequest) {
         return accountRepository.findById(accountId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Account not found")))
+                .flatMap(existingAccount -> {
+                    existingAccount.setAccountNumber(accountRequest.getAccountNumber());
+                    existingAccount.setType(accountRequest.getType());
+                    existingAccount.setBalance(accountRequest.getBalance());
+                    existingAccount.setMaintenanceFee(accountRequest.getMaintenanceFee());
+                    existingAccount.setMovementLimit(accountRequest.getMovementLimit());
+                    existingAccount.setUpdatedAt(accountRequest.getUpdatedAt());
+                    return accountRepository.save(existingAccount)
+                            .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
+                })
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
+    }
+
+    @Override
+    public Mono<Void> deleteAccount(String accountId) {
+        return accountRepository.findById(accountId)
+                .flatMap(account -> accountRepository.delete(account))
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
+    }
+
+    @Override
+    public Mono<AccountResponse> getAccountById(String accountId) {
+        return accountRepository.findById(accountId)
+                .map(AccountResponse::fromEntity)  // Convertir la entidad a AccountResponse
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
+    }
+
+    @Override
+    public Flux<AccountResponse> getAccountsByClientId(String clientId) {
+        return accountRepository.findByClientId(clientId)
+                .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
+    }
+
+    @Override
+    public Mono<AccountResponse> deposit(String accountId, BigDecimal amount) {
+        return accountRepository.findById(accountId)
                 .flatMap(account -> {
-                    if (amount <= 0) {
-                        return Mono.error(new ApiValidateException("Withdrawal amount must be greater than zero"));
+                    account.setBalance(account.getBalance().add(amount));
+                    return accountRepository.save(account)
+                            .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
+                })
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
+    }
+
+    @Override
+    public Mono<AccountResponse> withdraw(String accountId, BigDecimal amount) {
+        return accountRepository.findById(accountId)
+                .flatMap(account -> {
+                    if (account.getBalance().compareTo(amount) < 0) {
+                        return Mono.error(new ApiValidateException("Fondos insuficientes"));
                     }
-                    if (account.getBalance() < amount) {
-                        return Mono.error(new ApiValidateException("Insufficient balance"));
-                    }
-                    account.setBalance(account.getBalance() - amount);
-                    return accountRepository.save(account);
-                });
+                    account.setBalance(account.getBalance().subtract(amount));
+                    return accountRepository.save(account)
+                            .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
+                })
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
     }
 }

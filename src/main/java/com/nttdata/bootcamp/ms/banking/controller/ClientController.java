@@ -4,16 +4,20 @@ import com.nttdata.bootcamp.ms.banking.model.request.ClientRequest;
 import com.nttdata.bootcamp.ms.banking.model.response.ClientResponse;
 import com.nttdata.bootcamp.ms.banking.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
  * Controller for managing client-related operations.
+ *
+ * @author Bruno Andre Castro Barrientos
+ * @version 1.0
  */
 
 @RequiredArgsConstructor
@@ -25,62 +29,92 @@ public class ClientController {
     private final ClientService clientService;
 
     /**
-     * Creates a new client.
+     * Crea un nuevo cliente en el sistema, validando el tipo de cliente (personal o empresarial) y sus productos.
      *
-     * @param request the client details to create.
-     * @return a Mono containing the created client response.
+     * @param clientRequest Datos del cliente a crear.
+     * @return Mono con la respuesta que contiene los detalles del cliente creado.
+     *
+     * @see ClientRequest
      */
+    @Operation(summary = "Crear un nuevo cliente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Cliente creado con éxito"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados")
+    })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create a new client", description = "Creates a new client with the provided details.")
-    public Mono<ClientResponse> createClient(@Valid @RequestBody ClientRequest request) {
-        return clientService.createClient(request);
+    public Mono<ClientResponse> createClient(@RequestBody ClientRequest clientRequest) {
+        return clientService.createClient(clientRequest);
     }
 
     /**
-     * Retrieves a client by its email.
+     * Actualiza los detalles de un cliente, considerando restricciones de productos activos y tipo de cliente.
      *
-     * @param email the email of the client to search for.
-     * @return a Mono containing the client response.
+     * @param clientId El ID único del cliente a actualizar.
+     * @param clientRequest Nuevos datos del cliente.
+     * @return Mono con la respuesta que contiene los detalles del cliente actualizado.
      */
-    @GetMapping("/{email}")
-    @Operation(summary = "Get client by email", description = "Retrieves client details using the email.")
-    public Mono<ClientResponse> getClientByEmail(
-            @PathVariable
-            @Parameter(description = "The email of the client to search for.", required = true)
-            String email) {
-        return clientService.getClientByEmail(email);
-    }
-
-    /**
-     * Updates an existing client.
-     *
-     * @param clientId the ID of the client to update.
-     * @param request the updated client details.
-     * @return a Mono containing the updated client response.
-     */
+    @Operation(summary = "Actualizar los detalles de un cliente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cliente actualizado con éxito"),
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+    })
     @PutMapping("/{clientId}")
-    @Operation(summary = "Update a client", description = "Updates the details of an existing client.")
     public Mono<ClientResponse> updateClient(
-            @PathVariable
-            @Parameter(description = "The ID of the client to update.", required = true)
-            String clientId,
-            @Valid @RequestBody ClientRequest request) {
-        return clientService.updateClient(clientId, request);
+            @PathVariable String clientId,
+            @RequestBody ClientRequest clientRequest
+    ) {
+        return clientService.updateClient(clientId, clientRequest);
     }
 
     /**
-     * Deletes a client by its ID.
+     * Elimina un cliente, asegurándose de que no tenga productos activos como cuentas o créditos.
      *
-     * @param clientId the ID of the client to delete.
+     * @param clientId El ID del cliente a eliminar.
+     * @return Mono vacío indicando que la eliminación se completó correctamente.
      */
+    @Operation(summary = "Eliminar un cliente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Cliente eliminado con éxito"),
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+    })
     @DeleteMapping("/{clientId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Delete a client", description = "Deletes a client using its ID.")
-    public Mono<Void> deleteClientById(
-            @PathVariable
-            @Parameter(description = "The ID of the client to delete.", required = true)
-            String clientId) {
-        return clientService.deleteClientById(clientId);
+    public Mono<Void> deleteClient(@PathVariable String clientId) {
+        return clientService.deleteClient(clientId);
     }
+
+    /**
+     * Obtiene los detalles de un cliente por su ID, considerando que el cliente debe estar registrado y sin productos activos impeditivos.
+     *
+     * @param clientId El ID del cliente a buscar.
+     * @return Mono con la respuesta que contiene los detalles del cliente.
+     *
+     * @see ClientResponse
+     */
+    @Operation(summary = "Obtener los detalles de un cliente por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cliente encontrado"),
+            @ApiResponse(responseCode = "404", description = "Cliente no encontrado")
+    })
+    @GetMapping("/{clientId}")
+    public Mono<ClientResponse> getClientById(@PathVariable String clientId) {
+        return clientService.getClientById(clientId);
+    }
+
+    /**
+     * Obtiene todos los clientes registrados en el sistema.
+     *
+     * @return Flux con los detalles de todos los clientes.
+     */
+    @Operation(summary = "Obtener todos los clientes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Clientes encontrados"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping
+    public Flux<ClientResponse> getAllClients() {
+        return clientService.getAllClients();
+    }
+
 }

@@ -14,6 +14,9 @@ import reactor.core.publisher.Mono;
  * Manejador global de excepciones
  * Procesa las excepciones de forma reactiva
  * Mapear errores a nivel de usuario y logs para developers
+ *
+ * @author Bruno Andre Castro Barrientos
+ * @version 1.0
  */
 @RestControllerAdvice
 public class ResponseExceptionHandler {

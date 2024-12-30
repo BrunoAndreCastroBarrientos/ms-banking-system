@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 
 /**
  * Entidad cuenta bancaria
+ *
+ * @author Bruno Andre Castro Barrientos
+ * @version 1.0
  */
 @Data
 @Builder
@@ -18,23 +21,29 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Document(collection = "accounts")
 public class Account {
+
     @Id
-    private String id;
+    private String id; // Identificador único de la cuenta bancaria.
+
     @Field("account_number")
-    private String accountNumber;
-    private AccountType type;
+    private String accountNumber; // Número de cuenta bancaria.
+
+    private AccountType type; // Tipo de cuenta (Ahorro, Corriente, Plazo Fijo).
+
     @Field("client_id")
-    private String clientId;
-    private BigDecimal balance;
+    private String clientId; // Identificador del cliente propietario de la cuenta.
+
+    private BigDecimal balance; // Saldo actual de la cuenta bancaria.
+
     @Field("maintenance_fee")
-    private BigDecimal maintenanceFee;
+    private BigDecimal maintenanceFee; // Comisión mensual por mantenimiento de la cuenta (si aplica).
+
     @Field("movement_limit")
-    private Integer movementLimit;
+    private Integer movementLimit; // Límite de movimientos mensuales (si aplica, como en las cuentas de ahorro).
+
     @Field("created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; // Fecha y hora en que se creó la cuenta bancaria.
+
     @Field("updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; // Fecha y hora en que se actualizó por última vez la cuenta bancaria.
 }
-
-
-

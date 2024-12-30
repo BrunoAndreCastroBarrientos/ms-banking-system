@@ -21,90 +21,44 @@ public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
 
     @Override
-    public Mono<ClientResponse> createClient(ClientRequest request) {
-        return validateClientRequest(request)
-                .flatMap(this::checkExistingEmail)
-                .flatMap(validatedRequest -> clientRepository.save(validatedRequest.toEntity()))
-                .doOnSuccess(client -> log.info("Client created successfully: {}", client.getId()))
-                .doOnError(ex -> log.error("Error creating client: {}", ex.getMessage()))
-                .map(ClientResponse::fromEntity);
-    }
-
-    private Mono<ClientRequest> validateClientRequest(ClientRequest request) {
-        return Mono.just(request)
-                .filter(req -> req.getEmail() != null && !req.getEmail().trim().isEmpty())
-                .filter(req -> req.getFirstName() != null && !req.getFirstName().trim().isEmpty())
-                .filter(req -> req.getLastName() != null && !req.getLastName().trim().isEmpty())
-                .filter(req -> req.getType() != null)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Invalid client data")));
-    }
-
-    private Mono<ClientRequest> checkExistingEmail(ClientRequest request) {
-        return clientRepository.findByEmail(request.getEmail())
-                .flatMap(existing -> Mono.error(new ApiValidateException("Email already registered")))
-                .thenReturn(request);
+    public Mono<ClientResponse> createClient(ClientRequest clientRequest) {
+        Client client = clientRequest.toEntity();
+        return clientRepository.save(client)
+                .map(ClientResponse::fromEntity);  // Convertir la entidad a ClientResponse
     }
 
     @Override
-    public Mono<ClientResponse> getClientByEmail(String email) {
-        return clientRepository.findByEmail(email)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Client not found")))
-                .map(ClientResponse::fromEntity);
+    public Mono<ClientResponse> updateClient(String clientId, ClientRequest clientRequest) {
+        return clientRepository.findById(clientId)
+                .flatMap(existingClient -> {
+                    existingClient.setFirstName(clientRequest.getFirstName());
+                    existingClient.setLastName(clientRequest.getLastName());
+                    existingClient.setEmail(clientRequest.getEmail());
+                    existingClient.setPhone(clientRequest.getPhone());
+                    existingClient.setUpdatedAt(clientRequest.getUpdatedAt());
+                    return clientRepository.save(existingClient)
+                            .map(ClientResponse::fromEntity);  // Convertir la entidad a ClientResponse
+                })
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cliente no encontrado")));
+    }
+
+    @Override
+    public Mono<Void> deleteClient(String clientId) {
+        return clientRepository.findById(clientId)
+                .flatMap(client -> clientRepository.delete(client))
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cliente no encontrado")));
     }
 
     @Override
     public Mono<ClientResponse> getClientById(String clientId) {
         return clientRepository.findById(clientId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Client not found")))
-                .map(ClientResponse::fromEntity);
-    }
-
-    @Override
-    public Mono<Void> deleteClientById(String clientId) {
-        return clientRepository.findById(clientId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Client not found")))
-                .flatMap(client -> clientRepository.deleteById(clientId));
-    }
-
-    @Override
-    public Mono<ClientResponse> updateClient(String clientId, ClientRequest request) {
-        return clientRepository.findById(clientId)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Client not found")))
-                .flatMap(existingClient -> validateClientUpdate(existingClient, request))
-                .flatMap(clientRepository::save)
-                .map(ClientResponse::fromEntity);
-    }
-
-    private Mono<Client> validateClientUpdate(Client existingClient, ClientRequest request) {
-        return Mono.just(existingClient)
-                .map(client -> {
-                    client.setFirstName(request.getFirstName());
-                    client.setLastName(request.getLastName());
-                    client.setType(request.getType());
-                    client.setPhone(request.getPhone());
-                    // No permitimos cambiar el email si ya existe para otro cliente
-                    if (!existingClient.getEmail().equals(request.getEmail())) {
-                        return checkNewEmail(client, request.getEmail());
-                    }
-                    return Mono.just(client);
-                })
-                .flatMap(clientMono -> clientMono);
-    }
-
-    private Mono<Client> checkNewEmail(Client client, String newEmail) {
-        return clientRepository.findByEmail(newEmail)
-                .flatMap(existing -> Mono.error(new ApiValidateException("Email already in use")))
-                .defaultIfEmpty(client)
-                .map(c -> {
-                    client.setEmail(newEmail);
-                    return client;
-                });
+                .map(ClientResponse::fromEntity)  // Convertir la entidad a ClientResponse
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cliente no encontrado")));
     }
 
     @Override
     public Flux<ClientResponse> getAllClients() {
         return clientRepository.findAll()
-                .map(ClientResponse::fromEntity);
-    }}
-
-
+                .map(ClientResponse::fromEntity);  // Convertir la entidad a ClientResponse
+    }
+}

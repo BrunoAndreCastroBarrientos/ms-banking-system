@@ -7,13 +7,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ClientService {
-
-    Mono<ClientResponse> createClient(ClientRequest request);
-
-    Mono<ClientResponse> getClientByEmail(String email);
+    Mono<ClientResponse> createClient(ClientRequest clientRequest);
+    Mono<ClientResponse> updateClient(String clientId, ClientRequest clientRequest);
+    Mono<Void> deleteClient(String clientId);
     Mono<ClientResponse> getClientById(String clientId);
-    Mono<Void> deleteClientById(String clientId);
     Flux<ClientResponse> getAllClients();
-    Mono<ClientResponse> updateClient(String clientId, ClientRequest request);
 }
 
