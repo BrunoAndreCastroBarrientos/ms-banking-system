@@ -34,6 +34,7 @@ public class Account {
     private String clientId; // Identificador del cliente propietario de la cuenta.
 
     private BigDecimal balance; // Saldo actual de la cuenta bancaria.
+    private Integer transactionCount; // Cantidad de Transacciones
 
     @Field("maintenance_fee")
     private BigDecimal maintenanceFee; // Comisión mensual por mantenimiento de la cuenta (si aplica).

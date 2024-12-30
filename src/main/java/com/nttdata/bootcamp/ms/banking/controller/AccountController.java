@@ -185,6 +185,33 @@ public class AccountController {
         return accountService.withdraw(accountId, amount);
     }
 
+    /**
+     * Realiza una transferencia entre dos cuentas bancarias.
+     * <p>
+     * Este método permite transferir fondos entre dos cuentas dentro del mismo banco, siempre que se cumplan las reglas
+     * de negocio, como tener fondos suficientes y verificar las cuentas de origen y destino.
+     * </p>
+     *
+     * @param fromAccountId El ID de la cuenta desde la cual se realizará la transferencia.
+     * @param toAccountId El ID de la cuenta a la cual se transferirán los fondos.
+     * @param amount El monto a transferir.
+     * @return Mono con la respuesta de la cuenta de origen y la cuenta destino después de la transferencia, mostrando
+     *         el saldo actualizado.
+     */
+    @Operation(summary = "Realizar una transferencia entre cuentas bancarias")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Transferencia realizada con éxito"),
+            @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o problemas con las cuentas")
+    })
+    @PostMapping("/transfer")
+    public Mono<Void> transfer(
+            @RequestParam String fromAccountId,
+            @RequestParam String toAccountId,
+            @RequestParam BigDecimal amount
+    ) {
+        return accountService.transfer(fromAccountId, toAccountId, amount);
+    }
+
 }
 
 

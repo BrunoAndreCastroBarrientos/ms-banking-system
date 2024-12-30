@@ -18,6 +18,7 @@ public interface AccountService {
 
     Mono<AccountResponse> deposit(String accountId, BigDecimal amount);
     Mono<AccountResponse> withdraw(String accountId, BigDecimal amount);
+    Mono<Void> transfer(String fromAccountId, String toAccountId, BigDecimal amount);
 }
 
 

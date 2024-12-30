@@ -8,7 +8,9 @@ package com.nttdata.bootcamp.ms.banking.model;
  */
 public enum ClientType {
     PERSONAL,    // Cliente personal con restricciones específicas de productos bancarios.
-    EMPRESARIAL  // Cliente empresarial con acceso a productos especializados, como múltiples cuentas corrientes.
+    EMPRESARIAL,  // Cliente empresarial con acceso a productos especializados, como múltiples cuentas corrientes.
+    VIP,
+    PYME
 }
 
 

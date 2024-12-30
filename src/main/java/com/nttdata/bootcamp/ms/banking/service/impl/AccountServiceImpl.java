@@ -117,7 +117,15 @@ public class AccountServiceImpl implements AccountService {
     public Mono<AccountResponse> deposit(String accountId, BigDecimal amount) {
         return accountRepository.findById(accountId)
                 .flatMap(account -> {
-                    account.setBalance(account.getBalance().add(amount));
+                    if (account.getTransactionCount() > account.getMovementLimit()) {
+                        account.setBalance(account.getBalance().add(amount));
+                        // Agregar comisión por transacción adicional
+                        BigDecimal commission = new BigDecimal("2.50");  // Ejemplo de comisión
+                        account.setBalance(account.getBalance().subtract(commission));
+                    } else {
+                        account.setBalance(account.getBalance().add(amount));
+                    }
+                    account.setTransactionCount(account.getTransactionCount() + 1);
                     return accountRepository.save(account)
                             .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
                 })
@@ -128,13 +136,43 @@ public class AccountServiceImpl implements AccountService {
     public Mono<AccountResponse> withdraw(String accountId, BigDecimal amount) {
         return accountRepository.findById(accountId)
                 .flatMap(account -> {
-                    if (account.getBalance().compareTo(amount) < 0) {
-                        return Mono.error(new ApiValidateException("Fondos insuficientes"));
+                    if (account.getTransactionCount() > account.getMovementLimit()) {
+                        if (account.getBalance().compareTo(amount.add(new BigDecimal("2.50"))) < 0) {
+                            return Mono.error(new ApiValidateException("Fondos insuficientes para cubrir la comisión"));
+                        }
+                        account.setBalance(account.getBalance().subtract(amount).subtract(new BigDecimal("2.50")));
+                    } else {
+                        if (account.getBalance().compareTo(amount) < 0) {
+                            return Mono.error(new ApiValidateException("Fondos insuficientes"));
+                        }
+                        account.setBalance(account.getBalance().subtract(amount));
                     }
-                    account.setBalance(account.getBalance().subtract(amount));
+                    account.setTransactionCount(account.getTransactionCount() + 1);
                     return accountRepository.save(account)
                             .map(AccountResponse::fromEntity);  // Convertir la entidad a AccountResponse
                 })
                 .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
     }
+    @Override
+    public Mono<Void> transfer(String fromAccountId, String toAccountId, BigDecimal amount) {
+        return accountRepository.findById(fromAccountId)
+                .flatMap(fromAccount -> {
+                    if (fromAccount.getBalance().compareTo(amount) < 0) {
+                        return Mono.error(new ApiValidateException("Fondos insuficientes"));
+                    }
+
+                    // Verificar si las cuentas pertenecen al mismo cliente o a un tercero
+                    return accountRepository.findById(toAccountId)
+                            .flatMap(toAccount -> {
+                                fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
+                                toAccount.setBalance(toAccount.getBalance().add(amount));
+                                return Mono.zip(
+                                        accountRepository.save(fromAccount),
+                                        accountRepository.save(toAccount)
+                                ).then();
+                            });
+                })
+                .switchIfEmpty(Mono.error(new ApiValidateException("Cuenta no encontrada")));
+    }
+
 }

@@ -1,106 +1,62 @@
 openapi: 3.0.0
 info:
-  title: Bank Account Service
-  description: |
-    Servicio para la gestión de cuentas bancarias de clientes personales y empresariales. 
-    Permite realizar operaciones como consultar saldos, hacer depósitos y retiros, entre otros.
+  title: Banking API
+  description: API para gestionar cuentas bancarias, clientes y créditos. Esta API permite realizar operaciones CRUD sobre cuentas bancarias, clientes y créditos.
   version: 1.0.0
-
 servers:
-  - url: http://localhost:8080/api
-    description: Local development server
+  - url: http://localhost:8080
+    description: Servidor local para pruebas
+
+tags:
+  - name: Accounts
+    description: Endpoints relacionados con la gestión de cuentas bancarias
+  - name: Clients
+    description: Endpoints relacionados con la gestión de clientes
+  - name: Credits
+    description: Endpoints relacionados con la gestión de créditos
 
 paths:
+  # Controlador de cuentas bancarias
   /accounts:
-    get:
-      summary: Get all bank accounts
-      description: Obtiene todas las cuentas bancarias del cliente. Se incluye el tipo de cuenta y su saldo.
-      operationId: getAllAccounts
-      responses:
-        '200':
-          description: Lista de todas las cuentas bancarias del cliente.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '400':
-          description: Solicitud incorrecta.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
-        '404':
-          description: No se encontraron cuentas.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
-
     post:
-      summary: Create a new bank account
-      description: Crea una nueva cuenta bancaria para el cliente. El tipo de cuenta y los detalles deben ser proporcionados en el cuerpo de la solicitud.
-      operationId: createAccount
+      tags:
+        - Accounts
+      summary: Crear una cuenta bancaria
+      description: Crea una nueva cuenta bancaria asociada a un cliente específico.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Account'
+              $ref: '#/components/schemas/AccountRequest'
+            examples:
+              example1:
+                value:
+                  type: "SAVINGS"
+                  clientId: "12345"
+                  balance: 1000.50
+                  maintenanceFee: 10.00
+                  movementLimit: 5
       responses:
-        '201':
-          description: Cuenta bancaria creada correctamente.
+        "201":
+          description: Cuenta creada con éxito
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
-        '400':
-          description: Datos de cuenta inválidos.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
-
+        "400":
+          description: Datos inválidos proporcionados
   /accounts/{accountId}:
-    get:
-      summary: Get a specific bank account
-      description: Obtiene la información de una cuenta bancaria específica mediante su ID.
-      operationId: getAccountById
-      parameters:
-        - name: accountId
-          in: path
-          required: true
-          description: ID de la cuenta bancaria a consultar.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Información de la cuenta bancaria solicitada.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '400':
-          description: Solicitud incorrecta.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
-        '404':
-          description: No se encontró la cuenta bancaria.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
-
     put:
-      summary: Update a bank account
-      description: Actualiza los detalles de una cuenta bancaria existente. El cuerpo de la solicitud debe incluir los datos a actualizar.
-      operationId: updateAccount
+      tags:
+        - Accounts
+      summary: Actualizar una cuenta bancaria
+      description: Actualiza los detalles de una cuenta bancaria existente, como el saldo o los límites de movimiento.
       parameters:
         - name: accountId
           in: path
           required: true
-          description: ID de la cuenta bancaria a actualizar.
+          description: ID único de la cuenta bancaria
           schema:
             type: string
       requestBody:
@@ -108,107 +64,386 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Account'
+              $ref: '#/components/schemas/AccountRequest'
       responses:
-        '200':
-          description: Cuenta bancaria actualizada correctamente.
+        "200":
+          description: Cuenta actualizada con éxito
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
-        '400':
-          description: Datos de cuenta inválidos.
+        "404":
+          description: Cuenta no encontrada
+    delete:
+      tags:
+        - Accounts
+      summary: Eliminar una cuenta bancaria
+      description: Elimina una cuenta bancaria específica utilizando su ID.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: ID único de la cuenta bancaria
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Cuenta eliminada con éxito
+        "404":
+          description: Cuenta no encontrada
+    get:
+      tags:
+        - Accounts
+      summary: Obtener los detalles de una cuenta bancaria
+      description: Recupera los detalles de una cuenta bancaria específica utilizando su ID.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: ID único de la cuenta bancaria
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cuenta encontrada
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
-        '404':
-          description: No se encontró la cuenta bancaria.
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Cuenta no encontrada
+  /accounts/client/{clientId}:
+    get:
+      tags:
+        - Accounts
+      summary: Obtener cuentas de un cliente
+      description: Obtiene todas las cuentas bancarias asociadas a un cliente específico.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: ID único del cliente
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cuentas encontradas
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Cliente no encontrado
+
+  # Controlador de clientes
+  /clients:
+    post:
+      tags:
+        - Clients
+      summary: Crear un cliente
+      description: Crea un nuevo cliente en el sistema.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+            examples:
+              example1:
+                value:
+                  firstName: "Juan"
+                  lastName: "Pérez"
+                  type: "PERSONAL"
+                  email: "juan.perez@example.com"
+                  phone: "+123456789"
+      responses:
+        "201":
+          description: Cliente creado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Datos inválidos proporcionados
+    get:
+      tags:
+        - Clients
+      summary: Obtener todos los clientes
+      description: Recupera la lista de todos los clientes registrados en el sistema.
+      responses:
+        "200":
+          description: Clientes encontrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /clients/{clientId}:
+    put:
+      tags:
+        - Clients
+      summary: Actualizar cliente
+      description: Actualiza los datos de un cliente existente utilizando su ID.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: ID único del cliente
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+      responses:
+        "200":
+          description: Cliente actualizado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Cliente no encontrado
+    delete:
+      tags:
+        - Clients
+      summary: Eliminar cliente
+      description: Elimina un cliente específico utilizando su ID.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: ID único del cliente
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Cliente eliminado con éxito
+        "404":
+          description: Cliente no encontrado
+    get:
+      tags:
+        - Clients
+      summary: Obtener cliente por ID
+      description: Recupera los detalles de un cliente específico utilizando su ID.
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: ID único del cliente
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Cliente no encontrado
+
+
+  # Controlador de créditos
+  /credits:
+    post:
+      tags:
+        - Credits
+      summary: Crear un nuevo crédito
+      description: Crea un nuevo crédito para un cliente, validando las restricciones según el tipo de cliente (personal o empresarial).
+      operationId: createCredit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditRequest'
+            examples:
+              example1:
+                value:
+                  clientId: "12345"
+                  amount: 5000.00
+                  interestRate: 5.0
+                  status: "APPROVED"
+                  creditType: "MORTGAGE"
+                  remainingBalance: 5000.00
+      responses:
+        "201":
+          description: Crédito creado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "400":
+          description: Datos inválidos proporcionados
+
+  /credits/{creditId}:
+    put:
+      tags:
+        - Credits
+      summary: Actualizar los detalles de un crédito
+      description: Actualiza los detalles de un crédito existente, respetando las políticas de actualización de créditos.
+      operationId: updateCredit
+      parameters:
+        - name: creditId
+          in: path
+          required: true
+          description: ID único del crédito a actualizar.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditRequest'
+      responses:
+        "200":
+          description: Crédito actualizado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Crédito no encontrado
 
     delete:
-      summary: Delete a bank account
-      description: Elimina una cuenta bancaria específica. La cuenta debe existir para ser eliminada.
-      operationId: deleteAccount
+      tags:
+        - Credits
+      summary: Eliminar un crédito
+      description: Elimina un crédito del sistema, asegurando que el crédito exista antes de la eliminación.
+      operationId: deleteCredit
       parameters:
-        - name: accountId
+        - name: creditId
           in: path
           required: true
-          description: ID de la cuenta bancaria a eliminar.
+          description: ID único del crédito a eliminar.
           schema:
             type: string
       responses:
-        '204':
-          description: Cuenta bancaria eliminada correctamente.
-        '400':
-          description: Solicitud incorrecta.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
-        '404':
-          description: No se encontró la cuenta bancaria.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiExceptionResponse'
+        "204":
+          description: Crédito eliminado con éxito
+        "404":
+          description: Crédito no encontrado
 
+    get:
+      tags:
+        - Credits
+      summary: Obtener los detalles de un crédito por su ID
+      description: Obtiene los detalles de un crédito por su ID, verificando que el crédito exista.
+      operationId: getCreditById
+      parameters:
+        - name: creditId
+          in: path
+          required: true
+          description: ID único del crédito a buscar.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Crédito encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Crédito no encontrado
+
+  /credits/client/{clientId}:
+    get:
+      tags:
+        - Credits
+      summary: Obtener los créditos asociados a un cliente
+      description: Obtiene todos los créditos asociados a un cliente, considerando los productos activos del cliente.
+      operationId: getCreditsByClientId
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: ID único del cliente cuyos créditos se desean obtener.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Créditos encontrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        "404":
+          description: Cliente no encontrado
+
+# Componentes (Esquemas reutilizables)
 components:
   schemas:
-    Account:
+    AccountRequest:
       type: object
+      required:
+        - type
+        - clientId
       properties:
-        id:
+        type:
           type: string
-          description: El ID único de la cuenta bancaria.
-        accountType:
+          description: Tipo de cuenta bancaria (e.g., SAVINGS, CURRENT)
+        clientId:
           type: string
-          description: El tipo de cuenta (Ahorro, Corriente, Plazo fijo).
+          description: ID del cliente asociado
         balance:
           type: number
-          format: float
-          description: El saldo actual de la cuenta bancaria.
-        currency:
-          type: string
-          description: La moneda de la cuenta bancaria (por ejemplo, USD, EUR).
-        owner:
-          type: string
-          description: El nombre del titular de la cuenta bancaria.
+          format: double
+          description: Saldo inicial de la cuenta
+        maintenanceFee:
+          type: number
+          format: double
+          description: Tarifa de mantenimiento
+        movementLimit:
+          type: integer
+          description: Límite de movimientos permitidos por mes
+    ClientRequest:
+      type: object
       required:
-        - id
-        - accountType
-        - balance
-        - currency
-        - owner
-
+        - firstName
+        - lastName
+      properties:
+        firstName:
+          type: string
+          description: Nombre del cliente
+        lastName:
+          type: string
+          description: Apellido del cliente
+        type:
+          type: string
+          description: Tipo de cliente (e.g., PERSONAL, BUSINESS)
+        email:
+          type: string
+          description: Correo electrónico del cliente
+        phone:
+          type: string
+          description: Teléfono del cliente
+    CreditRequest:
+      type: object
+      required:
+        - clientId
+        - amount
+      properties:
+        clientId:
+          type: string
+          description: ID del cliente asociado
+        amount:
+          type: number
+          format: double
+          description: Monto total del crédito
+        interestRate:
+          type: number
+          format: double
+          description: Tasa de interés aplicable
     ApiResponse:
       type: object
       properties:
         code:
           type: string
-          description: Código de estado de la respuesta.
         message:
           type: string
-          description: Mensaje descriptivo de la respuesta.
         data:
           type: object
-          description: Datos devueltos por el microservicio (si aplica).
-      required:
-        - code
-        - message
-
-    ApiExceptionResponse:
-      type: object
-      properties:
-        code:
-          type: string
-          description: Código de error.
-        message:
-          type: string
-          description: Mensaje de error detallado.
-      required:
-        - code
-        - message
