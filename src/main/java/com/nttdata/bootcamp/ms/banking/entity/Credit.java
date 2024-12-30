@@ -1,23 +1,35 @@
 package com.nttdata.bootcamp.ms.banking.entity;
 
+import com.nttdata.bootcamp.ms.banking.model.CreditStatus;
+import com.nttdata.bootcamp.ms.banking.model.CreditType;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@Document(collection = "credits")
-@Getter
-@Setter
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * Entidad crédito
+ */
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Document(collection = "credits")
 public class Credit {
     @Id
     private String id;
-    private String clientId; // Linked to Client entity
-    private double amount;
-    private double interestRate;
-    private String status; // e.g., "Approved", "Pending", "Closed"
-    private String creditType; // Personal or Business
-    private double remainingBalance;
+    private String clientId;
+    private BigDecimal amount;
+    private BigDecimal interestRate;
+    private CreditStatus status;
+    private CreditType creditType;
+    private BigDecimal remainingBalance;
+    @Field("created_at")
+    private LocalDateTime createdAt;
+    @Field("updated_at")
+    private LocalDateTime updatedAt;
 }
 

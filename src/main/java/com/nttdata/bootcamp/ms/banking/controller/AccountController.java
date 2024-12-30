@@ -1,5 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.controller;
 
+import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.model.request.AccountRequest;
 import com.nttdata.bootcamp.ms.banking.model.response.AccountResponse;
 import com.nttdata.bootcamp.ms.banking.service.AccountService;

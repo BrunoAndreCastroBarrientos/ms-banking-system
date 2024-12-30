@@ -1,16 +1,21 @@
 package com.nttdata.bootcamp.ms.banking.entity;
 
-import com.nttdata.bootcamp.ms.banking.model.ClientType;
 import lombok.*;
+import com.nttdata.bootcamp.ms.banking.model.ClientType;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-@Document(collection = "clients")
-@Getter
-@Setter
+import java.time.LocalDateTime;
+
+/**
+ * Entidad cliente
+ */
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Document(collection = "clients")
 public class Client {
     @Id
     private String id;
@@ -19,7 +24,8 @@ public class Client {
     private ClientType type;
     private String email;
     private String phone;
+    @Field("created_at")
+    private LocalDateTime createdAt;
+    @Field("updated_at")
+    private LocalDateTime updatedAt;
 }
-
-
-
