@@ -1,6 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.exception;
 
-import com.nttdata.bootcamp.ms.banking.model.response.ApiExceptionResponse;
+import com.nttdata.bootcamp.ms.banking.dto.response.ApiExceptionResponse;
 import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +27,15 @@ public class ResponseExceptionHandler {
    */
   @ExceptionHandler(WebExchangeBindException.class)
   public Mono<ResponseEntity<ApiExceptionResponse>> manejarErrorValidacion(
-          WebExchangeBindException ex) {
+      WebExchangeBindException ex) {
     return Mono.just(ResponseEntity.ok()
-            .body(ApiExceptionResponse.builder()
-                    .code(ConstantUtil.ERROR_CODE)
-                    .message(ex.getBindingResult().getFieldErrors().stream()
-                            .findFirst()
-                            .map(fieldError -> fieldError.getDefaultMessage())
-                            .orElse("Error de validación"))
-                    .build()));
+        .body(ApiExceptionResponse.builder()
+            .code(ConstantUtil.ERROR_CODE)
+            .message(ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(fieldError -> fieldError.getDefaultMessage())
+                .orElse("Error de validación"))
+            .build()));
   }
 
   /**
@@ -43,7 +43,7 @@ public class ResponseExceptionHandler {
    */
   @ExceptionHandler(ApiValidateException.class)
   public Mono<ResponseEntity<ApiExceptionResponse>> manejarExcepcionValidacion(
-          ApiValidateException ex) {
+      ApiValidateException ex) {
     return construirRespuestaError(ex.getLocalizedMessage());
   }
 
@@ -52,7 +52,7 @@ public class ResponseExceptionHandler {
    */
   @ExceptionHandler(ApiErrorException.class)
   public Mono<ResponseEntity<ApiExceptionResponse>> manejarErrorApi(
-          ApiErrorException ex) {
+      ApiErrorException ex) {
     log.error("Error en la API", ex);
     return construirRespuestaError(ConstantUtil.ERROR_MESSAGE);
   }
@@ -71,9 +71,9 @@ public class ResponseExceptionHandler {
    */
   private Mono<ResponseEntity<ApiExceptionResponse>> construirRespuestaError(String mensaje) {
     return Mono.just(ResponseEntity.ok()
-            .body(ApiExceptionResponse.builder()
-                    .code(ConstantUtil.ERROR_CODE)
-                    .message(mensaje)
-                    .build()));
+        .body(ApiExceptionResponse.builder()
+            .code(ConstantUtil.ERROR_CODE)
+            .message(mensaje)
+            .build()));
   }
 }

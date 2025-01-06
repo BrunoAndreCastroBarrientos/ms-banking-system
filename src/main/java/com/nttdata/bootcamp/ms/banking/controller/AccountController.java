@@ -1,180 +1,201 @@
 package com.nttdata.bootcamp.ms.banking.controller;
 
-import com.nttdata.bootcamp.ms.banking.model.request.AccountRequest;
-import com.nttdata.bootcamp.ms.banking.model.response.AccountResponse;
+import com.nttdata.bootcamp.ms.banking.dto.request.AccountRequest;
+import com.nttdata.bootcamp.ms.banking.dto.response.AccountResponse;
+import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.service.AccountService;
 import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.math.BigDecimal;
 
 /**
  * Controller for managing account-related operations.
  *
+ * <p>This controller provides endpoints for creating,
+ * updating, retrieving, and closing accounts.</p>
+ *
+ * @version 1.1
  * @author Bruno Andre Castro Barrientos
- * @version 1.0
  */
-@RequiredArgsConstructor
+
 @RestController
-@RequestMapping("/accounts")
-@Tag(name = "Accounts", description = "Endpoints for managing accounts.")
+@RequestMapping("/api/accounts")
+@RequiredArgsConstructor
 public class AccountController {
 
-    private final AccountService accountService;
+  private final AccountService accountService;
 
-    /**
-     * Crea una nueva cuenta bancaria, asegurándose de que el tipo de cuenta y los límites del cliente sean cumplidos.
-     * <p>
-     * Los clientes personales solo pueden tener una cuenta de ahorro, corriente o plazo fijo, y los clientes empresariales
-     * solo pueden tener cuentas corrientes. Las cuentas a plazo fijo permiten solo un movimiento por mes.
-     * </p>
-     *
-     * @param accountRequest Datos de la cuenta a crear, incluyendo tipo de cuenta y cliente asociado.
-     * @return Mono con la respuesta de la cuenta creada, incluyendo los detalles de la cuenta creada.
-     */
-    @Operation(summary = "Crear una cuenta bancaria")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.CREATED_CODE, description = "Cuenta creada con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Datos inválidos proporcionados, posiblemente debido a reglas de negocio")})
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<AccountResponse> createAccount(@Valid @RequestBody AccountRequest accountRequest) {
-        return accountService.createAccount(accountRequest);
+  /**
+   * Creates a new account.
+   *
+   * <p>This endpoint creates a new account by providing
+   * the necessary details in the request body.</p>
+   *
+   * @param request the details of the account to create.
+   * @return a {@link Mono} with the response containing the newly created account details.
+   * @throws ApiValidateException if the account creation request is invalid.
+   */
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Create a new account",
+      description = "Creates a new account for a customer.")
+  @ApiResponses({
+      @ApiResponse(responseCode = ConstantUtil.CREATED_CODE,
+          description = "Account created successfully"),
+      @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
+          description = "Invalid input data")
+  })
+  public Mono<AccountResponse> create(@RequestBody AccountRequest request) {
+    if (request == null || request.getCustomerId() == null || request.getAccountType() == null) {
+      throw new ApiValidateException(
+          "Customer ID and account type are required to create an account."
+      );
     }
+    return accountService.createAccount(request);
+  }
 
-    /**
-     * Actualiza una cuenta bancaria existente, asegurándose de que las reglas de negocio sean respetadas.
-     * <p>
-     * Los clientes personales solo pueden modificar cuentas dentro de los tipos permitidos para ellos (ahorro, corriente, plazo fijo),
-     * mientras que los clientes empresariales solo pueden modificar cuentas corrientes.
-     * </p>
-     *
-     * @param accountId      El ID de la cuenta a actualizar.
-     * @param accountRequest Datos de la cuenta actualizada, incluyendo tipo de cuenta y modificaciones del saldo.
-     * @return Mono con la respuesta de la cuenta actualizada, incluyendo los nuevos detalles de la cuenta.
-     */
-    @Operation(summary = "Actualizar una cuenta bancaria")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta actualizada con éxito"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o no se cumplen las reglas de negocio para actualización")})
-    @PutMapping("/{accountId}")
-    public Mono<AccountResponse> updateAccount(@PathVariable String accountId, @Valid @RequestBody AccountRequest accountRequest) {
-        return accountService.updateAccount(accountId, accountRequest);
+  /**
+   * Updates the details of an existing account.
+   *
+   * <p>This endpoint allows you to update an existing account
+   * by providing the account ID and updated details.</p>
+   *
+   * @param accountId the unique ID of the account to update.
+   * @param request the updated account details.
+   * @return a {@link Mono} containing the updated account details.
+   * @throws ApiValidateException if the account ID or request is invalid.
+   */
+  @PutMapping(value = "/{accountId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Update account details",
+      description = "Updates the details of an existing account.")
+  @ApiResponses({
+      @ApiResponse(responseCode = ConstantUtil.OK_CODE,
+          description = "Account updated successfully"),
+      @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE,
+          description = "Account not found"),
+      @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
+          description = "Invalid input data")
+  })
+  public Mono<AccountResponse> update(@PathVariable String accountId,
+                                      @RequestBody AccountRequest request) {
+    if (accountId == null || accountId.isEmpty()) {
+      throw new ApiValidateException("Account ID must be provided.");
     }
-
-    /**
-     * Elimina una cuenta bancaria.
-     * <p>
-     * La eliminación de la cuenta debe seguir las reglas de negocio que evitan eliminar cuentas vinculadas a créditos activos
-     * o que pertenezcan a un cliente con productos pendientes de pago.
-     * </p>
-     *
-     * @param accountId El ID de la cuenta a eliminar.
-     * @return Mono vacío indicando que la cuenta fue eliminada con éxito.
-     */
-    @Operation(summary = "Eliminar una cuenta bancaria")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.DELETED_CODE, description = "Cuenta eliminada con éxito"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o vinculada a productos activos")})
-    @DeleteMapping("/{accountId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Mono<Void> deleteAccount(@PathVariable String accountId) {
-        return accountService.deleteAccount(accountId);
+    if (request == null || request.getCustomerId() == null || request.getAccountType() == null) {
+      throw new ApiValidateException(
+          "Customer ID and account type are required for account update."
+      );
     }
+    return accountService.updateAccount(accountId, request);
+  }
 
-    /**
-     * Obtiene los detalles de una cuenta bancaria por su ID.
-     * <p>
-     * Este método devuelve la información detallada de la cuenta solicitada, asegurando que solo el propietario o un firmante autorizado
-     * pueda consultar los datos sensibles.
-     * </p>
-     *
-     * @param accountId El ID de la cuenta.
-     * @return Mono con la respuesta de la cuenta encontrada, incluyendo todos los detalles de la cuenta.
-     */
-    @Operation(summary = "Obtener los detalles de una cuenta bancaria")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuenta encontrada"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cuenta no encontrada o acceso no autorizado")})
-    @GetMapping("/{accountId}")
-    public Mono<AccountResponse> getAccountById(@PathVariable String accountId) {
-        return accountService.getAccountById(accountId);
+  /**
+   * Closes an account by its ID.
+   *
+   * <p>This endpoint allows you to close an account by providing its unique account ID.</p>
+   *
+   * @param accountId the unique ID of the account to close.
+   * @return a {@link Mono} with a response indicating the account was closed successfully.
+   * @throws ApiValidateException if the account ID is invalid or the account does not exist.
+   */
+  @DeleteMapping(value = "/{accountId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Close an account",
+      description = "Closes an existing account by its unique ID.")
+  @ApiResponses({
+      @ApiResponse(responseCode = ConstantUtil.DELETED_CODE,
+          description = "Account closed successfully"),
+      @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE,
+          description = "Account not found")
+  })
+  public Mono<Void> closeAccount(@PathVariable String accountId) {
+    if (accountId == null || accountId.isEmpty()) {
+      throw new ApiValidateException("Account ID must be provided.");
     }
+    return accountService.closeAccount(accountId);
+  }
 
-    /**
-     * Obtiene todas las cuentas asociadas a un cliente.
-     * <p>
-     * Este método devuelve todas las cuentas bancarias asociadas a un cliente, garantizando que se respeten las limitaciones
-     * según el tipo de cliente (personal o empresarial).
-     * </p>
-     *
-     * @param clientId El ID del cliente.
-     * @return Flux con las cuentas asociadas al cliente, considerando las restricciones de tipo de cuenta por cliente.
-     */
-    @Operation(summary = "Obtener todas las cuentas asociadas a un cliente")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Cuentas encontradas"), @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE, description = "Cliente no encontrado o no tiene cuentas asociadas")})
-    @GetMapping("/client/{clientId}")
-    public Flux<AccountResponse> getAccountsByClientId(@PathVariable String clientId) {
-        return accountService.getAccountsByClientId(clientId);
+  /**
+   * Retrieves the details of a specific account by its ID.
+   *
+   * <p>This endpoint allows you to fetch the details of an account using its unique account ID.</p>
+   *
+   * @param accountId the unique ID of the account to retrieve.
+   * @return a {@link Mono} containing the account details.
+   * @throws ApiValidateException if the account ID is invalid or the account does not exist.
+   */
+  @GetMapping(value = "/{accountId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Get account details by ID",
+      description = "Fetches the details of a specific account.")
+  @ApiResponses({
+      @ApiResponse(responseCode = ConstantUtil.OK_CODE,
+          description = "Account details retrieved successfully"),
+      @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE,
+          description = "Account not found")
+  })
+  public Mono<AccountResponse> getById(@PathVariable String accountId) {
+    if (accountId == null || accountId.isEmpty()) {
+      throw new ApiValidateException("Account ID must be provided.");
     }
+    return accountService.getById(accountId);
+  }
 
-    /**
-     * Realiza un depósito en una cuenta bancaria.
-     * <p>
-     * Este método realiza un depósito, asegurando que el saldo de la cuenta no exceda los límites establecidos para el tipo de cuenta,
-     * por ejemplo, en cuentas a plazo fijo, el depósito debe cumplir con las condiciones contractuales específicas.
-     * </p>
-     *
-     * @param accountId El ID de la cuenta donde se realizará el depósito.
-     * @param amount    El monto a depositar.
-     * @return Mono con la respuesta de la cuenta después del depósito, mostrando el saldo actualizado.
-     */
-    @Operation(summary = "Realizar un depósito en una cuenta bancaria")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Depósito realizado con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Monto de depósito inválido o violación de reglas de negocio (como límite de saldo o condiciones de cuenta a plazo fijo)")})
-    @PostMapping("/{accountId}/deposit")
-    public Mono<AccountResponse> deposit(@PathVariable String accountId, @RequestParam BigDecimal amount) {
-        return accountService.deposit(accountId, amount);
+  /**
+   * Retrieves all accounts associated with a specific customer.
+   *
+   * <p>This endpoint allows you to retrieve all accounts
+   * linked to a customer using their customer ID.</p>
+   *
+   * @param customerId the unique ID of the customer whose accounts are to be retrieved.
+   * @return a {@link Flux} containing the list of accounts for the given customer.
+   * @throws ApiValidateException if the customer ID is invalid or not provided.
+   */
+  @GetMapping(value = "/customer/{customerId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Get accounts by customer ID",
+      description = "Fetches all accounts linked to a specific customer.")
+  @ApiResponses({
+      @ApiResponse(responseCode = ConstantUtil.OK_CODE,
+          description = "Accounts retrieved successfully"),
+      @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE,
+          description = "Customer not found")
+  })
+  public Flux<AccountResponse> getByCustomerId(@PathVariable String customerId) {
+    if (customerId == null || customerId.isEmpty()) {
+      throw new ApiValidateException("Customer ID must be provided.");
     }
+    return accountService.getByCustomerId(customerId);
+  }
 
-    /**
-     * Realiza un retiro de una cuenta bancaria.
-     * <p>
-     * Este método permite un retiro siempre que el saldo sea suficiente, cumpliendo las reglas de negocio que impiden retirar
-     * fondos de cuentas a plazo fijo si no es el día permitido para el movimiento.
-     * </p>
-     *
-     * @param accountId El ID de la cuenta de la que se realizará el retiro.
-     * @param amount    El monto a retirar.
-     * @return Mono con la respuesta de la cuenta después del retiro, mostrando el saldo actualizado.
-     */
-    @Operation(summary = "Realizar un retiro de una cuenta bancaria")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Retiro realizado con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o no se cumple con las restricciones de la cuenta")})
-    @PostMapping("/{accountId}/withdraw")
-    public Mono<AccountResponse> withdraw(@PathVariable String accountId, @RequestParam BigDecimal amount) {
-        return accountService.withdraw(accountId, amount);
-    }
-
-    /**
-     * Realiza una transferencia entre dos cuentas bancarias.
-     * <p>
-     * Este método permite transferir fondos entre dos cuentas dentro del mismo banco, siempre que se cumplan las reglas
-     * de negocio, como tener fondos suficientes y verificar las cuentas de origen y destino.
-     * </p>
-     *
-     * @param fromAccountId El ID de la cuenta desde la cual se realizará la transferencia.
-     * @param toAccountId   El ID de la cuenta a la cual se transferirán los fondos.
-     * @param amount        El monto a transferir.
-     * @return Mono con la respuesta de la cuenta de origen y la cuenta destino después de la transferencia, mostrando
-     * el saldo actualizado.
-     */
-    @Operation(summary = "Realizar una transferencia entre cuentas bancarias")
-    @ApiResponses(value = {@ApiResponse(responseCode = ConstantUtil.OK_CODE, description = "Transferencia realizada con éxito"), @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = "Fondos insuficientes o problemas con las cuentas")})
-    @PostMapping("/transfer")
-    public Mono<Void> transfer(@RequestParam String fromAccountId, @RequestParam String toAccountId, @RequestParam BigDecimal amount) {
-        return accountService.transfer(fromAccountId, toAccountId, amount);
-    }
-
+  /**
+   * Retrieves all accounts in the system.
+   *
+   * <p>This endpoint allows you to retrieve all accounts present in the system.</p>
+   *
+   * @return a {@link Flux} containing the list of all accounts.
+   */
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Get all accounts",
+      description = "Fetches all accounts in the system.")
+  @ApiResponses({
+      @ApiResponse(responseCode = ConstantUtil.OK_CODE,
+          description = "All accounts retrieved successfully")
+  })
+  public Flux<AccountResponse> getAll() {
+    return accountService.getAll();
+  }
 }
-
-

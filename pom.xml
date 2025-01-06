@@ -104,7 +104,7 @@
 							<inputSpec>${project.basedir}/src/main/resources/banking-api.yaml</inputSpec>
 							<generatorName>spring</generatorName>
 							<apiPackage>com.nttdata.bootcamp.ms.banking.api</apiPackage>
-							<modelPackage>com.nttdata.bootcamp.ms.banking.model</modelPackage>
+							<modelPackage>com.nttdata.bootcamp.ms.banking.dto</modelPackage>
 							<configOptions>
 								<delegatePattern>true</delegatePattern>
 								<reactive>true</reactive>

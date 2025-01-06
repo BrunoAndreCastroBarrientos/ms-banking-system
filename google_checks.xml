@@ -1,31 +1,30 @@
-<?xml version="1.0"?>
-<!DOCTYPE module PUBLIC
-        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
-        "https://checkstyle.org/dtds/configuration_1_3.dtd">
-
-<module name="Checker">
-    <property name="severity" value="warning"/>
-
-    <!-- Módulo TreeWalker para reglas que requieren navegar a través de árboles de sintaxis -->
-    <module name="TreeWalker">
-        <!-- Verifica que las clases tengan JavaDocs -->
-        <module name="JavadocType"/>
-        <!-- Verifica el orden de los imports -->
-        <module name="AvoidStarImport"/>
-        <module name="UnusedImports"/>
-        <!-- Indentación estándar (4 espacios) -->
-        <module name="Indentation">
-            <property name="basicOffset" value="4"/>
-            <property name="tabWidth" value="4"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="8.45">
+    <module name="Checker">
+        <!-- Regla para verificar las convenciones de nombre de clase -->
+        <module name="CustomImportOrder">
+            <property name="order" value="alphabetical"/>
         </module>
-        <!-- Nombres de métodos en camelCase -->
-        <module name="MethodName"/>
-        <!-- Verificar que las clases tengan constructores explícitos -->
-        <module name="ExplicitInitialization"/>
-    </module>
 
-    <!-- Módulo independiente para la verificación de la longitud de las líneas -->
-    <module name="LineLength">
-        <property name="max" value="120"/>
+        <!-- Regla para verificar la longitud máxima de línea -->
+        <module name="LineLength">
+            <property name="max" value="80"/>
+        </module>
+
+        <!-- Regla para evitar que se usen más de 1 espacio en los tabuladores -->
+        <module name="Indentation">
+            <property name="tabWidth" value="4"/>  <!-- Usa 4 espacios por tabulación -->
+        </module>
+
+        <!-- Regla para verificar los nombres de las variables -->
+        <module name="NamingConvention">
+            <property name="ignorePattern" value="^.*[a-zA-Z0-9]+$"/>
+        </module>
+
+        <!-- Regla para evitar métodos o clases sin comentarios -->
+        <module name="JavadocMethod">
+            <property name="allowMissingJavadoc" value="false"/>
+        </module>
+
     </module>
-</module>
+</checkstyle>

@@ -1,13 +1,16 @@
 package com.nttdata.bootcamp.ms.banking.entity;
 
-import com.nttdata.bootcamp.ms.banking.model.AccountType;
-import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Field;
-
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.AccountType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 
 /**
  * Entidad cuenta bancaria
@@ -15,36 +18,32 @@ import java.time.LocalDateTime;
  * @author Bruno Andre Castro Barrientos
  * @version 1.0
  */
+
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Document(collection = "accounts")
 public class Account {
+  @Id
+  private String id;                      // Identificador único de la cuenta
 
-    @Id
-    private String id; // Identificador único de la cuenta bancaria.
+  private String customerId;              // ID del cliente propietario de la cuenta
 
-    @Field("account_number")
-    private String accountNumber; // Número de cuenta bancaria.
+  private AccountType accountType;        // Tipo de cuenta (SAVINGS, CHECKING, TIME_DEPOSIT)
 
-    private AccountType type; // Tipo de cuenta (Ahorro, Corriente, Plazo Fijo).
+  private BigDecimal balance;             // Saldo actual de la cuenta
 
-    @Field("client_id")
-    private String clientId; // Identificador del cliente propietario de la cuenta.
+  private String currency;                // Moneda de la cuenta (ej. USD, EUR, etc.)
 
-    private BigDecimal balance; // Saldo actual de la cuenta bancaria.
-    private Integer transactionCount; // Cantidad de Transacciones
+  private LocalDateTime openDate;         // Fecha de apertura de la cuenta
 
-    @Field("maintenance_fee")
-    private BigDecimal maintenanceFee; // Comisión mensual por mantenimiento de la cuenta (si aplica).
+  private RecordStatus status;            // Estado de la cuenta (ACTIVE, CLOSED, etc.)
 
-    @Field("movement_limit")
-    private Integer movementLimit; // Límite de movimientos mensuales (si aplica, como en las cuentas de ahorro).
+  private Integer transactionsAllowed;    // Número máximo de transacciones sin comisión
 
-    @Field("created_at")
-    private LocalDateTime createdAt; // Fecha y hora en que se creó la cuenta bancaria.
+  private BigDecimal maintenanceFee;      // Comisión de mantenimiento (puede ser 0)
 
-    @Field("updated_at")
-    private LocalDateTime updatedAt; // Fecha y hora en que se actualizó por última vez la cuenta bancaria.
+  private LocalDateTime cutoffDate; // Para cuentas de plazo fijo u otras configuraciones
+
 }
