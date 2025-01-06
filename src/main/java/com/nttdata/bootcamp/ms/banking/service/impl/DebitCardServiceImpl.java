@@ -7,14 +7,32 @@ import com.nttdata.bootcamp.ms.banking.dto.request.DebitCardRequest;
 import com.nttdata.bootcamp.ms.banking.dto.response.DebitCardResponse;
 import com.nttdata.bootcamp.ms.banking.repository.DebitCardRepository;
 import com.nttdata.bootcamp.ms.banking.service.DebitCardService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
+/**
+ * Implementación del servicio de tarjetas de débito.
+ * Proporciona operaciones para crear, consultar,
+ * bloquear y realizar retiros con tarjetas de débito.
+ *
+ * <p>Este servicio gestiona la creación y el estado
+ * de las tarjetas de débito, así como la lógica
+ * de los retiros de las cuentas asociadas a la tarjeta,
+ * gestionando las operaciones en cascada
+ * cuando no se dispone de suficiente saldo en la cuenta
+ * principal.</p>
+ *
+ * <p>También permite consultar los últimos movimientos
+ * de la tarjeta de débito y bloquear una
+ * tarjeta.</p>
+ *
+ * @version 1.1
+ * @author Bruno Andre Castro Barrientos
+ */
 @Service
 @RequiredArgsConstructor
 public class DebitCardServiceImpl implements DebitCardService {

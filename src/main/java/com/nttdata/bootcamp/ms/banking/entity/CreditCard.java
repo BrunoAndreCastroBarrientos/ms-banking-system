@@ -1,5 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.entity;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,7 +28,7 @@ public class CreditCard {
   private String id;
   private String customerId;
   private String type;         // "CREDIT"
-  private String cardType;     // "PERSONAL" o "ENTERPRISE" (según tu enum CardType)
+  private CardType cardType;     // "PERSONAL" o "ENTERPRISE"
   private BigDecimal creditLimit;
   private BigDecimal availableLimit;
   private BigDecimal balance;

@@ -1,15 +1,16 @@
 package com.nttdata.bootcamp.ms.banking.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nttdata.bootcamp.ms.banking.entity.Credit;
-import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
-import com.nttdata.bootcamp.ms.banking.mapper.CreditMapper;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CreditType;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import com.nttdata.bootcamp.ms.banking.dto.request.CreditRequest;
 import com.nttdata.bootcamp.ms.banking.dto.response.CreditResponse;
+import com.nttdata.bootcamp.ms.banking.entity.Credit;
+import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
+import com.nttdata.bootcamp.ms.banking.mapper.CreditMapper;
 import com.nttdata.bootcamp.ms.banking.repository.CreditRepository;
 import com.nttdata.bootcamp.ms.banking.service.CreditService;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,21 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.math.BigDecimal;
 
+/**
+ * Implementación del servicio de créditos. Proporciona operaciones
+ * para crear, consultar, pagar, cancelar créditos y verificar morosidad.
+ *
+ * <p>Este servicio gestiona los créditos de los clientes, incluyendo
+ * la validación de las reglas de negocio antes de crear un crédito,
+ * como verificar la morosidad del cliente y las restricciones de
+ * crédito para clientes personales.
+ * Además, permite realizar pagos, cancelar créditos y
+ * consultar créditos activos de un cliente.</p>
+ *
+ * @version 1.1
+ * @author Bruno Andre Castro Barrientos
+ */
 @Service
 @RequiredArgsConstructor
 public class CreditServiceImpl implements CreditService {
@@ -66,7 +80,8 @@ public class CreditServiceImpl implements CreditService {
         .flatMap(credit -> {
           // Regla: si outstandingBalance > 0, no se puede cancelar
           if (credit.getOutstandingBalance().compareTo(BigDecimal.ZERO) > 0) {
-            return Mono.error(new ApiValidateException("Cannot cancel credit with outstanding balance."));
+            return Mono.error(
+                new ApiValidateException("Cannot cancel credit with outstanding balance."));
           }
           credit.setStatus(RecordStatus.CANCELLED);
           return creditRepository.save(credit);
@@ -126,6 +141,7 @@ public class CreditServiceImpl implements CreditService {
    * - Si el cliente tiene morosidad, rechazar.
    */
   private Mono<Void> validateBeforeCreating(Credit credit) {
+    String errorMesg = "Customer has overdue debt. Cannot create new credit.";
     return getCustomerTypeAndSubType(credit.getCustomerId())
         .flatMap(tuple -> {
           String customerType = tuple.getT1();  // "PERSONAL", "ENTERPRISE"
@@ -135,7 +151,8 @@ public class CreditServiceImpl implements CreditService {
           return hasOverdueDebt(credit.getCustomerId())
               .flatMap(hasOverdue -> {
                 if (hasOverdue) {
-                  return Mono.error(new ApiValidateException("Customer has overdue debt. Cannot create new credit."));
+                  return Mono.error(
+                      new ApiValidateException(errorMesg));
                 }
                 // Validar límite de crédito personal
                 if (CreditType.PERSONAL == credit.getCreditType()
@@ -168,6 +185,7 @@ public class CreditServiceImpl implements CreditService {
    */
   private Mono<Void> validatePersonalCreditLimit(String customerId, String subType) {
     if ("STANDARD".equalsIgnoreCase(subType)) {
+      String errorMesg = "STANDARD personal customer already has a personal credit.";
       return creditRepository.findByCustomerId(customerId)
           .filter(c -> c.getCreditType() == CreditType.PERSONAL
               && (c.getStatus() == RecordStatus.ACTIVE
@@ -175,7 +193,9 @@ public class CreditServiceImpl implements CreditService {
           .count()
           .flatMap(count -> {
             if (count >= 1) {
-              return Mono.error(new ApiValidateException("STANDARD personal customer already has a personal credit."));
+              return Mono.error(
+                  new ApiValidateException(errorMesg)
+              );
             }
             return Mono.empty();
           });

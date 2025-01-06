@@ -16,6 +16,23 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Implementación del servicio de reportes.
+ * Proporciona operaciones para obtener resúmenes consolidados,
+ * balances promedio diarios y los últimos movimientos de productos del cliente.
+ *
+ * <p>Este servicio gestiona la obtención de
+ * resúmenes financieros del cliente, incluyendo el
+ * balance de cuentas, créditos, tarjetas y
+ * verifica si existe deuda vencida. Además,
+ * ofrece la capacidad de calcular el balance
+ * promedio diario de una cuenta en un período
+ * y obtener los últimos movimientos de los
+ * productos del cliente.</p>
+ *
+ * @version 1.1
+ * @author Bruno Andre Castro Barrientos
+ */
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {

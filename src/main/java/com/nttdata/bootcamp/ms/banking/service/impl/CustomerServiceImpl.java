@@ -1,22 +1,34 @@
 package com.nttdata.bootcamp.ms.banking.service.impl;
 
-import com.nttdata.bootcamp.ms.banking.entity.Customer;
-import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
-import com.nttdata.bootcamp.ms.banking.mapper.CustomerMapper;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CustomerType;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import com.nttdata.bootcamp.ms.banking.dto.request.CustomerRequest;
 import com.nttdata.bootcamp.ms.banking.dto.response.CustomerResponse;
+import com.nttdata.bootcamp.ms.banking.entity.Customer;
+import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
+import com.nttdata.bootcamp.ms.banking.mapper.CustomerMapper;
 import com.nttdata.bootcamp.ms.banking.repository.CustomerRepository;
 import com.nttdata.bootcamp.ms.banking.service.CustomerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Implementación del servicio de clientes. Proporciona operaciones
+ * para crear, actualizar, consultar y cambiar el estado de los clientes.
+ *
+ * <p>Este servicio gestiona la creación, actualización y consulta de
+ * los clientes, además de validar reglas de negocio como la verificación
+ * de perfiles VIP o PYME y la comprobación de deudas pendientes antes de
+ * la creación de un cliente.</p>
+ *
+ * @version 1.1
+ * @author Bruno Andre Castro Barrientos
+ */
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -52,9 +64,7 @@ public class CustomerServiceImpl implements CustomerService {
     return customerRepository.findById(id)
         .switchIfEmpty(Mono.error(new ApiValidateException("Customer not found: " + id)))
         .flatMap(existing -> {
-          // Actualizar campos
-          existing.setCustomerType(CustomerType.valueOf(request.getCustomerType()));
-          // ... y demás campos
+          existing.setCustomerType(request.getCustomerType());
           return validateProfileRules(existing)
               .then(customerRepository.save(existing));
         })

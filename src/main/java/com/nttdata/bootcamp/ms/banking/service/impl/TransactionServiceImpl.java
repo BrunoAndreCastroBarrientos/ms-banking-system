@@ -16,6 +16,19 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 
+/**
+ * Implementación del servicio de transacciones.
+ * Proporciona operaciones para procesar transacciones de depósitos, retiros,
+ * transferencias, pagos de créditos y pagos de tarjetas de crédito.
+ *
+ * <p>Este servicio gestiona la lógica de negocio asociada a transacciones financieras
+ * entre cuentas, créditos y tarjetas de crédito. También verifica el estado de las cuentas,
+ * los créditos y las tarjetas, y aplica las comisiones necesarias en base
+ * a las transacciones realizadas.</p>
+ *
+ * @version 1.1
+ * @author Bruno Andre Castro Barrientos
+ */
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
