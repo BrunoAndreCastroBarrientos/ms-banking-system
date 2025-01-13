@@ -18,21 +18,22 @@ import java.util.Collections;
 @EnableCaching
 public class RedisConfig {
 
+    public static final String CACHE_NAME = "track";
 
-  @Bean(destroyMethod = "shutdown")
-  public RedissonClient redissonClient() {
-    var config = new Config();
-    config.useSingleServer()
-        .setAddress("")
-        .setPassword("");
-    return Redisson.create(config);
-  }
+    @Bean(destroyMethod = "shutdown")
+    public RedissonClient redissonClient() {
+        var config = new Config();
+        config.useSingleServer()
+                .setAddress("")
+                .setPassword("");
+        return Redisson.create(config);
+    }
 
-  @Bean
-  @Autowired
-  public CacheManager cacheManager(RedissonClient redissonClient) {
-    var config = Collections.singletonMap("customers", new CacheConfig());
-    return new RedissonSpringCacheManager(redissonClient, config);
-  }
+    @Bean
+    @Autowired
+    public CacheManager cacheManager(RedissonClient redissonClient) {
+        var config = Collections.singletonMap(CACHE_NAME, new CacheConfig());
+        return new RedissonSpringCacheManager(redissonClient, config);
+    }
 
 }*/
