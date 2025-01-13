@@ -14,9 +14,6 @@ import reactor.core.publisher.Mono;
  * Manejador global de excepciones
  * Procesa las excepciones de forma reactiva
  * Mapear errores a nivel de usuario y logs para developers
- *
- * @author Bruno Andre Castro Barrientos
- * @version 1.0
  */
 @RestControllerAdvice
 public class ResponseExceptionHandler {
@@ -39,13 +36,13 @@ public class ResponseExceptionHandler {
   }
 
   /**
-   * Maneja excepciones de validación personalizadas
+   * Elimina o comenta el manejador para ApiValidateException
    */
-  @ExceptionHandler(ApiValidateException.class)
-  public Mono<ResponseEntity<ApiExceptionResponse>> manejarExcepcionValidacion(
-      ApiValidateException ex) {
-    return construirRespuestaError(ex.getLocalizedMessage());
-  }
+    @ExceptionHandler(ApiValidateException.class)
+    public Mono<ResponseEntity<ApiExceptionResponse>> manejarExcepcionValidacion(
+            ApiValidateException ex) {
+        return construirRespuestaError(ex.getLocalizedMessage());
+    }
 
   /**
    * Maneja errores específicos de la API

@@ -1,5 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.dto.response;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,7 +18,7 @@ import java.time.LocalDate;
 public class CreditCardResponse {
   private String id;
   private String customerId;
-  private String cardType;
+  private CardType cardType;
   private BigDecimal creditLimit;
   private BigDecimal availableLimit;
   private BigDecimal balance;

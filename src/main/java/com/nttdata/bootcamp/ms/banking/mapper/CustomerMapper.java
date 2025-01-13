@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
 @Component
 public class CustomerMapper {
 
-  public Customer requestToEntity(CustomerRequest request) {
+  public static Customer toEntity(CustomerRequest request) {
     Customer customer = new Customer();
-    customer.setCustomerType(CustomerType.valueOf(request.getCustomerType()));
-    customer.setSubType(CustomerProfile.valueOf(request.getSubType()));
+    customer.setCustomerType(request.getCustomerType());
+    customer.setSubType(request.getSubType());
     customer.setFirstName(request.getFirstName());
     customer.setLastName(request.getLastName());
     customer.setBusinessName(request.getBusinessName());
@@ -27,7 +27,7 @@ public class CustomerMapper {
     return customer;
   }
 
-  public CustomerResponse entityToResponse(Customer customer) {
+  public CustomerResponse toResponse(Customer customer) {
     CustomerResponse response = new CustomerResponse();
     response.setId(customer.getId());
     response.setCustomerType(customer.getCustomerType().name());

@@ -8,6 +8,7 @@ import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,8 +26,8 @@ import reactor.core.publisher.Mono;
  * Provides endpoints for creating, retrieving,
  * blocking, and performing transactions with debit cards.
  *
- * @version 1.0
  * @author Bruno Andre Castro Barrientos
+ * @version 1.0
  */
 @RestController
 @RequestMapping("/api/cards/debit")
@@ -51,7 +52,8 @@ public class DebitCardController {
       @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
           description = ConstantUtil.ERROR_MESSAGE)
   })
-  public Mono<DebitCardResponse> create(@RequestBody DebitCardRequest request) {
+  public Mono<DebitCardResponse> create(
+      @Valid @RequestBody DebitCardRequest request) {
     return debitCardService.createDebitCard(request);
   }
 
@@ -139,7 +141,7 @@ public class DebitCardController {
    * Retrieves the last N movements from a debit card.
    *
    * @param cardId The unique identifier of the debit card.
-   * @param limit The maximum number of movements to retrieve (default is 10).
+   * @param limit  The maximum number of movements to retrieve (default is 10).
    * @return A {@link Flux} containing the details of the last N movements.
    * @throws ApiValidateException if the card ID is invalid or not found.
    */

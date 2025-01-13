@@ -1,5 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.dto.request;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.TransactionType;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class TransactionRequest {
   @NotBlank(message = "El tipo de transacción no puede estar vacío.") // Tipo de transacción
   @Pattern(regexp = "DEPOSIT|WITHDRAWAL|TRANSFER|CREDIT_PAYMENT|CREDIT_CARD_PAYMENT",
       message = "El tipo de transacción debe ser uno de los siguientes: DEPOSIT, WITHDRAWAL, TRANSFER, CREDIT_PAYMENT, CREDIT_CARD_PAYMENT.")
-  private String transactionType;
+  private TransactionType transactionType;
 
   @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
       message = "El ID de la cuenta de origen debe ser un UUID válido.") // ID de la cuenta de origen

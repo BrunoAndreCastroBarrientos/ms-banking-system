@@ -38,12 +38,11 @@ public class CreditCardServiceImpl implements CreditCardService {
 
   private final CreditCardRepository creditCardRepository;
   private final CreditCardMapper creditCardMapper;
+  private final WebClient webClient;
 
   @Value("${service.credit.url}")
   private String creditsServiceUrl;
 
-  // Ejemplo de WebClient (podrías inyectarlo con @Bean o usar Spring Cloud)
-  private final WebClient webClient = WebClient.create();
 
   @Override
   public Mono<CreditCardResponse> createCreditCard(CreditCardRequest request) {
@@ -54,23 +53,23 @@ public class CreditCardServiceImpl implements CreditCardService {
                 "El cliente tiene deuda vencida. No se puede emitir nueva tarjeta de crédito."));
           }
           // Podrías añadir validaciones: si es VIP/PYME, etc.
-          CreditCard card = creditCardMapper.requestToEntity(request);
+          CreditCard card = creditCardMapper.toEntity(request);
           return creditCardRepository.save(card);
         })
-        .map(creditCardMapper::entityToResponse);
+        .map(creditCardMapper::toResponse);
   }
 
   @Override
   public Mono<CreditCardResponse> getById(String cardId) {
     return creditCardRepository.findById(cardId)
-        .map(creditCardMapper::entityToResponse);
+        .map(creditCardMapper::toResponse);
   }
 
   @Override
   public Flux<CreditCardResponse> getByCustomerId(String customerId) {
     return creditCardRepository.findByCustomerId(customerId)
         .filter(card -> "CREDIT".equalsIgnoreCase(card.getType()))
-        .map(creditCardMapper::entityToResponse);
+        .map(creditCardMapper::toResponse);
   }
 
   @Override
@@ -98,7 +97,7 @@ public class CreditCardServiceImpl implements CreditCardService {
           }
           return creditCardRepository.save(card);
         })
-        .map(creditCardMapper::entityToResponse);
+        .map(creditCardMapper::toResponse);
   }
 
   @Override
@@ -109,7 +108,7 @@ public class CreditCardServiceImpl implements CreditCardService {
           card.setStatus(RecordStatus.BLOCKED);
           return creditCardRepository.save(card);
         })
-        .map(creditCardMapper::entityToResponse);
+        .map(creditCardMapper::toResponse);
   }
 
   private Mono<Boolean> verifyNoOverdueDebt(String customerId) {

@@ -1,5 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.dto.request;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,7 +27,7 @@ public class CreditCardRequest {
   @NotBlank(message = "El tipo de tarjeta no puede estar vacío.") // Tipo de tarjeta: PERSONAL o ENTERPRISE
   @Pattern(regexp = "PERSONAL|ENTERPRISE",
       message = "El tipo de tarjeta debe ser PERSONAL o ENTERPRISE.")
-  private String cardType;
+  private CardType cardType;
 
   @NotNull(message = "El límite de crédito no puede ser nulo.") // Límite total de crédito de la tarjeta
   @DecimalMin(value = "0.01", inclusive = true,

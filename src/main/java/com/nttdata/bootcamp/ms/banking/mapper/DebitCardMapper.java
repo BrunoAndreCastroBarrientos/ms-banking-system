@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DebitCardMapper {
 
-  public DebitCard requestToEntity(DebitCardRequest request) {
+  public static DebitCard toEntity(DebitCardRequest request) {
     DebitCard card = new DebitCard();
     card.setCustomerId(request.getCustomerId());
     card.setCardType(request.getCardType());
@@ -20,7 +20,7 @@ public class DebitCardMapper {
     return card;
   }
 
-  public DebitCardResponse entityToResponse(DebitCard card) {
+  public DebitCardResponse toResponse(DebitCard card) {
     DebitCardResponse resp = new DebitCardResponse();
     resp.setId(card.getId());
     resp.setCustomerId(card.getCustomerId());

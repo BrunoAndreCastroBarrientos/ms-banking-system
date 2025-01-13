@@ -11,6 +11,9 @@ import com.nttdata.bootcamp.ms.banking.mapper.AccountMapper;
 import com.nttdata.bootcamp.ms.banking.repository.AccountRepository;
 import com.nttdata.bootcamp.ms.banking.service.AccountService;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,7 +22,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
-
 
 /**
  * Implementación del servicio de cuentas. Proporciona operaciones
@@ -33,7 +35,6 @@ import reactor.util.function.Tuples;
  * todas las cuentas de un cliente o todas las cuentas en general,
  * y cerrar cuentas si el saldo es cero.</p>
  *
- * @author Bruno Andre Castro Barrientos
  * @version 1.1
  */
 @Service
@@ -42,6 +43,7 @@ public class AccountServiceImpl implements AccountService {
 
   private final AccountRepository accountRepository;
   private final AccountMapper accountMapper;
+  private final WebClient webClient;
 
   @Value("${service.customers.url}")
   private String customersServiceUrl;
@@ -49,17 +51,16 @@ public class AccountServiceImpl implements AccountService {
   @Value("${service.credits.url}")
   private String creditsServiceUrl;
 
-  @Value("${service.cards.url}")
-  private String cardsServiceUrl;
+  @Value("${service.creditcards.url}")
+  private String creditCardsServiceUrl;
 
-  private final WebClient webClient = WebClient.create();
 
   @Override
   public Mono<AccountResponse> createAccount(AccountRequest request) {
-    Account account = accountMapper.requestToEntity(request);
+    Account account = accountMapper.toEntity(request);
     return validateBeforeCreating(account)
         .then(accountRepository.save(account))
-        .map(accountMapper::entityToResponse);
+        .map(accountMapper::toResponse);
   }
 
   @Override
@@ -72,7 +73,7 @@ public class AccountServiceImpl implements AccountService {
           existing.setCutoffDate(request.getCutoffDate());
           return accountRepository.save(existing);
         })
-        .map(accountMapper::entityToResponse);
+        .map(accountMapper::toResponse);
   }
 
   @Override
@@ -92,20 +93,35 @@ public class AccountServiceImpl implements AccountService {
   @Override
   public Mono<AccountResponse> getById(String accountId) {
     return accountRepository.findById(accountId)
-        .map(accountMapper::entityToResponse);
+        .map(accountMapper::toResponse);
   }
 
   @Override
   public Flux<AccountResponse> getByCustomerId(String customerId) {
     return accountRepository.findByCustomerId(customerId)
-        .map(accountMapper::entityToResponse);
+        .map(accountMapper::toResponse);
   }
 
   @Override
   public Flux<AccountResponse> getAll() {
     return accountRepository.findAll()
-        .map(accountMapper::entityToResponse);
+        .map(accountMapper::toResponse);
   }
+
+  @Override
+  public Mono<BigDecimal> debit(String accountId, BigDecimal amount) {
+    return accountRepository.findById(accountId)
+        .switchIfEmpty(Mono.error(new ApiValidateException("Account not found.")))
+        .flatMap(account -> {
+          if (account.getBalance().compareTo(amount) < 0) {
+            return Mono.error(new ApiValidateException("Insufficient funds."));
+          }
+          account.setBalance(account.getBalance().subtract(amount));
+          return accountRepository.save(account)
+              .map(updatedAccount -> updatedAccount.getBalance());
+        });
+  }
+
 
   private Mono<Void> validateBeforeCreating(Account account) {
     return getCustomerTypeAndSubType(account.getCustomerId())
@@ -145,7 +161,7 @@ public class AccountServiceImpl implements AccountService {
 
   private Mono<Void> verifyCreditCardExists(String customerId) {
     return webClient.get()
-        .uri(cardsServiceUrl + "/cards/customer/" + customerId + "/active")
+        .uri(creditCardsServiceUrl + "/customer/" + customerId )
         .retrieve()
         .bodyToFlux(String.class)
         .switchIfEmpty(Mono.error(new ApiValidateException("No active credit card found for VIP requirement.")))
@@ -154,7 +170,7 @@ public class AccountServiceImpl implements AccountService {
 
   private Mono<Void> verifyEnterpriseCardExists(String customerId) {
     return webClient.get()
-        .uri(cardsServiceUrl + "/cards/customer/" + customerId + "/active?type=ENTERPRISE")
+        .uri(creditCardsServiceUrl + "/customer/" + customerId )
         .retrieve()
         .bodyToFlux(String.class)
         .switchIfEmpty(Mono.error(new ApiValidateException("No active enterprise credit card for PYME requirement.")))
@@ -173,4 +189,23 @@ public class AccountServiceImpl implements AccountService {
           return Mono.empty();
         });
   }
+
+  public List<Object> getCountries() throws Exception {
+    try {
+      // Usamos WebClient para hacer la solicitud a la API de países usando la URL completa
+      Object[] countries = webClient.get()
+          .uri("https://restcountries.com/v3.1/all")  // URL completa para obtener todos los países
+          .retrieve()
+          .bodyToMono(Object[].class)
+          .block();  // Usamos .block() para esperar la respuesta sincrónicamente
+
+      // Retornamos una sublista (de índice 1 a 10)
+      return List.of(countries).stream().skip(1).limit(9).collect(Collectors.toList());
+    } catch (Exception e) {
+      throw new Exception("Failed to fetch countries from the API", e);
+    }
+  }
+
+
+
 }

@@ -1,30 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<checkstyle version="8.45">
-    <module name="Checker">
-        <!-- Regla para verificar las convenciones de nombre de clase -->
-        <module name="CustomImportOrder">
-            <property name="order" value="alphabetical"/>
+<module name="Checker">
+
+    <!-- Regla para verificar las convenciones de orden de importación (dentro de TreeWalker) -->
+    <module name="TreeWalker">
+        <module name="ImportOrder">
+            <property name="groups" value="java,javax,org,com"/>  <!-- Definir el orden de importación por grupos -->
+            <property name="separated" value="true"/>  <!-- Dejar líneas vacías entre grupos -->
         </module>
 
-        <!-- Regla para verificar la longitud máxima de línea -->
-        <module name="LineLength">
-            <property name="max" value="80"/>
-        </module>
-
-        <!-- Regla para evitar que se usen más de 1 espacio en los tabuladores -->
+        <!-- Regla para verificar la indentación -->
         <module name="Indentation">
-            <property name="tabWidth" value="4"/>  <!-- Usa 4 espacios por tabulación -->
+            <property name="tabWidth" value="4"/>
+            <property name="basicOffset" value="4"/>
         </module>
 
-        <!-- Regla para verificar los nombres de las variables -->
-        <module name="NamingConvention">
-            <property name="ignorePattern" value="^.*[a-zA-Z0-9]+$"/>
-        </module>
-
-        <!-- Regla para evitar métodos o clases sin comentarios -->
+        <!-- Regla para evitar métodos sin comentarios Javadoc -->
         <module name="JavadocMethod">
-            <property name="allowMissingJavadoc" value="false"/>
+            <property name="allowMissingJavadocComments" value="false"/> <!-- Cambié el nombre de la propiedad -->
         </module>
+    </module> <!-- End of TreeWalker -->
 
+    <!-- Regla para verificar la longitud máxima de línea (directamente en Checker) -->
+    <module name="LineLength">
+        <property name="max" value="80"/>
     </module>
-</checkstyle>
+
+</module>

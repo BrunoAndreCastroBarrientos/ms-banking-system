@@ -8,6 +8,7 @@ import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,8 +26,8 @@ import reactor.core.publisher.Mono;
  * Controller for managing customer-related operations.
  * Provides endpoints for creating, updating, retrieving, and modifying customer data.
  *
- * @version 1.0
  * @author Bruno Andre Castro Barrientos
+ * @version 1.0
  */
 @RestController
 @RequestMapping("/api/customers")
@@ -51,14 +52,15 @@ public class CustomerController {
       @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
           description = ConstantUtil.ERROR_MESSAGE)
   })
-  public Mono<CustomerResponse> create(@RequestBody CustomerRequest request) {
+  public Mono<CustomerResponse> create(
+      @Valid @RequestBody CustomerRequest request) {
     return customerService.createCustomer(request);
   }
 
   /**
    * Updates an existing customer's details by their ID.
    *
-   * @param id The unique identifier of the customer to update.
+   * @param id      The unique identifier of the customer to update.
    * @param request The request containing the updated customer details.
    * @return A {@link Mono} containing the updated customer details.
    * @throws ApiValidateException if the customer ID or update data is invalid.
@@ -76,18 +78,19 @@ public class CustomerController {
           description = "Customer not found")
   })
   public Mono<CustomerResponse> update(@PathVariable String id,
-                                       @RequestBody CustomerRequest request) {
+
+                                       @Valid @RequestBody CustomerRequest request) {
     return customerService.updateCustomer(id, request);
   }
 
   /**
    * Changes the status of an existing customer by their ID.
    *
-   * @param id The unique identifier of the customer whose status needs to be changed.
+   * @param id        The unique identifier of the customer whose status needs to be changed.
    * @param newStatus The new status to assign to the customer.
    * @return A {@link Mono} containing the updated customer details with the new status.
    * @throws ApiValidateException if the status change request
-   *      is invalid or the customer is not found.
+   *                              is invalid or the customer is not found.
    */
   @PatchMapping(value = "/{id}/status/{newStatus}",
       produces = MediaType.APPLICATION_JSON_VALUE)
