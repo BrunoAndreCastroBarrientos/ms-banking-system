@@ -1,5 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.entity;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +27,7 @@ public class DebitCard {
   private String id;
   private String customerId;
   private String type;                // "DEBIT"
-  private String cardType;            // "PERSONAL" o "ENTERPRISE" (opcional si aplica)
+  private CardType cardType;            // "PERSONAL" o "ENTERPRISE" (opcional si aplica)
   private List<String> associatedAccounts; // IDs de cuentas bancarias del cliente
   private String primaryAccount;           // ID de la cuenta principal
   private RecordStatus status;        // ACTIVE, BLOCKED, etc.

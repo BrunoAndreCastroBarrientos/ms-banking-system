@@ -1,7 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.mapper;
 
 import com.nttdata.bootcamp.ms.banking.entity.Credit;
-import com.nttdata.bootcamp.ms.banking.dto.enumeration.CreditType;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import com.nttdata.bootcamp.ms.banking.dto.request.CreditRequest;
 import com.nttdata.bootcamp.ms.banking.dto.response.CreditResponse;
@@ -10,10 +9,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CreditMapper {
 
-  public Credit requestToEntity(CreditRequest request) {
+  public static Credit toEntity(CreditRequest request) {
     Credit credit = new Credit();
     credit.setCustomerId(request.getCustomerId());
-    credit.setCreditType(CreditType.valueOf(request.getCreditType()));
+    credit.setCreditType(request.getCreditType());
     credit.setPrincipalAmount(request.getPrincipalAmount());
     credit.setOutstandingBalance(request.getPrincipalAmount()); // Inicialmente igual al principal
     credit.setInterestRate(request.getInterestRate());
@@ -23,7 +22,7 @@ public class CreditMapper {
     return credit;
   }
 
-  public CreditResponse entityToResponse(Credit credit) {
+  public CreditResponse toResponse(Credit credit) {
     CreditResponse response = new CreditResponse();
     response.setId(credit.getId());
     response.setCustomerId(credit.getCustomerId());
@@ -43,7 +42,7 @@ public class CreditMapper {
    * Ejemplo simple de cuándo considerar un crédito como "overdue".
    * Podría basarse en status, fecha, etc.
    */
-  private boolean isCreditOverdue(Credit credit) {
+  private static boolean isCreditOverdue(Credit credit) {
     // Por ejemplo, si la dueDate ya pasó y el credit sigue sin pagar
     if (credit.getDueDate() != null && credit.getDueDate().isBefore(java.time.LocalDate.now())) {
       return true;

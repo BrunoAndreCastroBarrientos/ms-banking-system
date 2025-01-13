@@ -8,6 +8,7 @@ import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,7 +50,8 @@ public class TransactionController {
       @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
           description = ConstantUtil.ERROR_MESSAGE)
   })
-  public Mono<TransactionResponse> createTransaction(@RequestBody TransactionRequest request) {
+  public Mono<TransactionResponse> createTransaction(
+      @Valid @RequestBody TransactionRequest request) {
     return transactionService.processTransaction(request);
   }
 
@@ -135,7 +137,7 @@ public class TransactionController {
    * @param creditCardId The unique identifier of the credit card whose
    *                     transactions are being retrieved.
    * @return A {@link Flux} containing the details of
-   *                      all transactions associated with the credit card.
+   * all transactions associated with the credit card.
    * @throws ApiValidateException if the credit card ID is invalid or not found.
    */
   @GetMapping(value = "/creditCard/{creditCardId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -157,7 +159,7 @@ public class TransactionController {
    * @param debitCardId The unique identifier of the debit
    *                    card whose transactions are being retrieved.
    * @return A {@link Flux} containing the details of all
-   *                    transactions associated with the debit card.
+   * transactions associated with the debit card.
    * @throws ApiValidateException if the debit card ID is invalid or not found.
    */
   @GetMapping(value = "/debitCard/{debitCardId}", produces = MediaType.APPLICATION_JSON_VALUE)

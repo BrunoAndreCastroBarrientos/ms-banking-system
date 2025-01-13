@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,8 +28,8 @@ import reactor.core.publisher.Mono;
  * <p>This controller provides endpoints for creating,
  * retrieving, updating, and blocking credit cards.</p>
  *
- * @version 1.1
  * @author Bruno Andre Castro Barrientos
+ * @version 1.1
  */
 @RestController
 @RequestMapping("/api/cards/credit")
@@ -56,7 +57,8 @@ public class CreditCardController {
       @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
           description = "Invalid input data")
   })
-  public Mono<CreditCardResponse> create(@RequestBody CreditCardRequest request) {
+  public Mono<CreditCardResponse> create(
+      @Valid @RequestBody CreditCardRequest request) {
     // Validar request si es necesario
     if (request == null || request.getCustomerId() == null) {
       throw new ApiValidateException("Customer ID is required for card creation.");
@@ -148,8 +150,8 @@ public class CreditCardController {
    * <p>This endpoint allows you to update the balance of a card by either paying (isPayment=true)
    * or consuming (isPayment=false) an amount. The amount should be positive for both actions.</p>
    *
-   * @param cardId the unique ID of the credit card whose balance is to be updated.
-   * @param amount the amount to be added or deducted from the balance.
+   * @param cardId    the unique ID of the credit card whose balance is to be updated.
+   * @param amount    the amount to be added or deducted from the balance.
    * @param isPayment a flag indicating whether the operation
    *                  is a payment (true) or a consumption (false).
    * @return a {@link Mono} containing the updated credit card details.

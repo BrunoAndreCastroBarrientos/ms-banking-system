@@ -20,6 +20,11 @@
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+			<version>2.0.2</version>
+		</dependency>
 		<!-- Spring Boot Starters -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -41,6 +46,21 @@
 			<version>2.3.0</version>
 		</dependency>
 
+		<!-- Spring Data Redis-->
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson</artifactId>
+			<version>3.18.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -147,22 +167,21 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.1.1</version> <!-- Usa la versión más reciente compatible -->
-				<configuration>
-					<configLocation>google_checks.xml</configLocation> <!-- Archivo de configuración de Checkstyle -->
-					<encoding>UTF-8</encoding>
-					<consoleOutput>true</consoleOutput> <!-- Imprime los resultados en consola -->
-					<failsOnError>true</failsOnError> <!-- Hace que la build falle si hay errores -->
-				</configuration>
+				<version>3.1.1</version> <!-- Esta es la versión del plugin de Maven -->
 				<executions>
 					<execution>
-						<phase>validate</phase> <!-- Se ejecutará en la fase validate de Maven -->
 						<goals>
 							<goal>check</goal>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<configLocation>google_checks.xml</configLocation> <!-- Ubicación del archivo Checkstyle -->
+					<encoding>UTF-8</encoding>
+					<consoleOutput>true</consoleOutput>
+				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
 </project>

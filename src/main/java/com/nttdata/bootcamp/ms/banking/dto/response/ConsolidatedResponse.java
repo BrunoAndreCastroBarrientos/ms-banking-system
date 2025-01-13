@@ -1,11 +1,12 @@
 package com.nttdata.bootcamp.ms.banking.dto.response;
 
-import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -19,13 +20,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DebitCardResponse {
-  private String id;
+public class ConsolidatedResponse {
   private String customerId;
-  private CardType cardType;
-  private List<String> associatedAccounts;
-  private String primaryAccount;
-  private String status; // ACTIVE, BLOCKED, etc.
-
+  private List<AccountResponse> accounts;
+  private List<CreditResponse> credits;
+  private List<TransactionResponse> transactions;
 }
 

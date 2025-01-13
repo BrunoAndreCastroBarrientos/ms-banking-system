@@ -1,7 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.mapper;
 
 import com.nttdata.bootcamp.ms.banking.entity.Transaction;
-import com.nttdata.bootcamp.ms.banking.dto.enumeration.TransactionType;
 import com.nttdata.bootcamp.ms.banking.dto.request.TransactionRequest;
 import com.nttdata.bootcamp.ms.banking.dto.response.TransactionResponse;
 import org.springframework.stereotype.Component;
@@ -12,9 +11,9 @@ import java.time.LocalDateTime;
 @Component
 public class TransactionMapper {
 
-  public Transaction requestToEntity(TransactionRequest request) {
+  public static Transaction toEntity(TransactionRequest request) {
     Transaction tx = new Transaction();
-    tx.setTransactionType(TransactionType.valueOf(request.getTransactionType()));
+    tx.setTransactionType(request.getTransactionType());
     tx.setOriginAccountId(request.getOriginAccountId());
     tx.setDestinationAccountId(request.getDestinationAccountId());
     tx.setCreditId(request.getCreditId());
@@ -27,7 +26,7 @@ public class TransactionMapper {
     return tx;
   }
 
-  public TransactionResponse entityToResponse(Transaction tx) {
+  public static TransactionResponse toResponse(Transaction tx) {
     TransactionResponse resp = new TransactionResponse();
     resp.setId(tx.getId());
     resp.setTransactionType(tx.getTransactionType().name());

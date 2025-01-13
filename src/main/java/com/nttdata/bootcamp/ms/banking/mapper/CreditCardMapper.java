@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Component
 public class CreditCardMapper {
 
-  public CreditCard requestToEntity(CreditCardRequest request) {
+  public static CreditCard toEntity(CreditCardRequest request) {
     CreditCard card = new CreditCard();
     card.setCustomerId(request.getCustomerId());
     card.setCardType(request.getCardType());
@@ -26,7 +26,7 @@ public class CreditCardMapper {
     return card;
   }
 
-  public CreditCardResponse entityToResponse(CreditCard card) {
+  public CreditCardResponse toResponse(CreditCard card) {
     CreditCardResponse resp = new CreditCardResponse();
     resp.setId(card.getId());
     resp.setCustomerId(card.getCustomerId());

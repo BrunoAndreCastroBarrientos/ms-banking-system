@@ -8,6 +8,7 @@ import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,8 +24,8 @@ import reactor.core.publisher.Mono;
 /**
  * Controller for managing client-related operations.
  *
- * @version 1.1
  * @author Bruno Andre Castro Barrientos
+ * @version 1.1
  */
 @RestController
 @RequestMapping("/api/credits")
@@ -48,7 +49,8 @@ public class CreditController {
       @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
           description = "Invalid input data")
   })
-  public Mono<CreditResponse> create(@RequestBody CreditRequest request) {
+  public Mono<CreditResponse> create(
+      @Valid @RequestBody CreditRequest request) {
     if (request == null || request.getCustomerId() == null) {
       throw new ApiValidateException("Customer ID is required to create a credit.");
     }
@@ -153,10 +155,10 @@ public class CreditController {
    * Applies a payment to a specific credit.
    *
    * @param creditId The unique identifier of the credit.
-   * @param amount The payment amount to be applied.
+   * @param amount   The payment amount to be applied.
    * @return A {@link Mono} containing the updated credit details after the payment.
    * @throws ApiValidateException if the credit ID is invalid or empty,
-   *              or if the payment amount is invalid.
+   *                              or if the payment amount is invalid.
    */
   @PostMapping(value = "/{creditId}/payments/{amount}",
       produces = MediaType.APPLICATION_JSON_VALUE)

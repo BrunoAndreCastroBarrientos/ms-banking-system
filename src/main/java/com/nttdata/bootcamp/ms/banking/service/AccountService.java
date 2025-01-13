@@ -5,6 +5,9 @@ import com.nttdata.bootcamp.ms.banking.dto.response.AccountResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 public interface AccountService {
   Mono<AccountResponse> createAccount(AccountRequest request);
 
@@ -17,6 +20,8 @@ public interface AccountService {
   Flux<AccountResponse> getByCustomerId(String customerId);
 
   Flux<AccountResponse> getAll();
+
+  Mono<BigDecimal> debit(String accountId, BigDecimal amount);
 }
 
 

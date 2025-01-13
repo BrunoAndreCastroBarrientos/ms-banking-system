@@ -5,21 +5,20 @@ import com.nttdata.bootcamp.ms.banking.dto.response.AccountResponse;
 import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.service.AccountService;
 import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Controller for managing account-related operations.
@@ -57,7 +56,7 @@ public class AccountController {
       @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
           description = "Invalid input data")
   })
-  public Mono<AccountResponse> create(@RequestBody AccountRequest request) {
+  public Mono<AccountResponse> create(@Valid @RequestBody AccountRequest request) {
     if (request == null || request.getCustomerId() == null || request.getAccountType() == null) {
       throw new ApiValidateException(
           "Customer ID and account type are required to create an account."
@@ -90,7 +89,8 @@ public class AccountController {
           description = "Invalid input data")
   })
   public Mono<AccountResponse> update(@PathVariable String accountId,
-                                      @RequestBody AccountRequest request) {
+
+@Valid @RequestBody AccountRequest request) {
     if (accountId == null || accountId.isEmpty()) {
       throw new ApiValidateException("Account ID must be provided.");
     }
@@ -197,5 +197,35 @@ public class AccountController {
   })
   public Flux<AccountResponse> getAll() {
     return accountService.getAll();
+  }
+  /**
+   * Realiza un débito en una cuenta específica.
+   *
+   * <p>Este endpoint permite debitar una cantidad específica del saldo de la cuenta indicada.</p>
+   *
+   * @param accountId el ID único de la cuenta.
+   * @param amount la cantidad a debitar.
+   * @return un {@link Mono} que contiene el saldo restante después del débito.
+   * @throws ApiValidateException si el ID de la cuenta es inválido o no tiene fondos suficientes.
+   */
+  @PatchMapping(value = "/{accountId}/debit", produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Debit an account",
+      description = "Debits a specific amount from the account's balance.")
+  @ApiResponses({
+      @ApiResponse(responseCode = ConstantUtil.OK_CODE,
+          description = "Account debited successfully"),
+      @ApiResponse(responseCode = ConstantUtil.NOT_FOUND_CODE,
+          description = "Account not found"),
+      @ApiResponse(responseCode = ConstantUtil.ERROR_CODE,
+          description = "Insufficient funds or invalid input data")
+  })
+  public Mono<BigDecimal> debit(@PathVariable String accountId, @RequestParam BigDecimal amount) {
+    if (accountId == null || accountId.isEmpty()) {
+      throw new ApiValidateException("Account ID must be provided.");
+    }
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new ApiValidateException("The amount to debit must be greater than zero.");
+    }
+    return accountService.debit(accountId, amount);
   }
 }

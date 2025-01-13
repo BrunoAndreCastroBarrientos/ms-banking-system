@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Component
 public class AccountMapper {
 
-  public Account requestToEntity(AccountRequest request) {
+  public static Account toEntity(AccountRequest request) {
     Account account = new Account();
     account.setCustomerId(request.getCustomerId());
     account.setAccountType(AccountType.valueOf(request.getAccountType()));
@@ -29,7 +29,7 @@ public class AccountMapper {
     return account;
   }
 
-  public AccountResponse entityToResponse(Account account) {
+  public AccountResponse toResponse(Account account) {
     AccountResponse response = new AccountResponse();
     response.setId(account.getId());
     response.setCustomerId(account.getCustomerId());
