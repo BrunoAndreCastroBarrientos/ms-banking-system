@@ -391,11 +391,11 @@ components:
           description: ID del cliente asociado
         balance:
           type: number
-          format: double
+          format: BigDecimal
           description: Saldo inicial de la cuenta
         maintenanceFee:
           type: number
-          format: double
+          format: BigDecimal
           description: Tarifa de mantenimiento
         movementLimit:
           type: integer
@@ -432,11 +432,11 @@ components:
           description: ID del cliente asociado
         amount:
           type: number
-          format: double
+          format: BigDecimal
           description: Monto total del crédito
         interestRate:
           type: number
-          format: double
+          format: BigDecimal
           description: Tasa de interés aplicable
     ApiResponse:
       type: object

@@ -29,6 +29,5 @@ public class DebitCard {
   private String type;                // "DEBIT"
   private CardType cardType;            // "PERSONAL" o "ENTERPRISE" (opcional si aplica)
   private List<String> associatedAccounts; // IDs de cuentas bancarias del cliente
-  private String primaryAccount;           // ID de la cuenta principal
   private RecordStatus status;        // ACTIVE, BLOCKED, etc.
 }

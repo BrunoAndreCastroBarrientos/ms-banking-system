@@ -1,5 +1,7 @@
 package com.nttdata.bootcamp.ms.banking.dto.response;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.AccountType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,16 +22,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountResponse {
-  private String id;                // ID autogenerado de la cuenta
-  private String customerId;        // ID del cliente dueño
-  private String accountType;       // "SAVINGS", "CHECKING", "TIME_DEPOSIT"
-  private BigDecimal balance;       // Saldo actual
-  private String currency;          // Moneda (USD, EUR, etc.)
-  private LocalDateTime openDate;   // Fecha de apertura
-  private String status;            // "ACTIVE", "CLOSED", etc.
-  private Integer transactionsAllowed;
-  private BigDecimal maintenanceFee;
-  private LocalDateTime cutoffDate; // Para cuentas de plazo fijo u otras configuraciones
-
+  private String id; // Identificador único de la cuenta
+  private String customerId; // ID del cliente propietario de la cuenta
+  private AccountType accountType; // Tipo de cuenta (SAVINGS, CHECKING, TIME_DEPOSIT)
+  private BigDecimal balance; // Saldo actual de la cuenta
+  private String currency; // Moneda de la cuenta (ej. USD, EUR, etc.)
+  private LocalDateTime openDate; // Fecha de apertura de la cuenta
+  private RecordStatus status; // Estado de la cuenta (ACTIVE, CLOSED, etc.)
 }
 

@@ -13,32 +13,36 @@ import java.time.LocalDateTime;
 @Component
 public class CustomerMapper {
 
-  public static Customer toEntity(CustomerRequest request) {
+  public Customer toEntity(CustomerRequest request) {
     Customer customer = new Customer();
     customer.setCustomerType(request.getCustomerType());
     customer.setSubType(request.getSubType());
     customer.setFirstName(request.getFirstName());
     customer.setLastName(request.getLastName());
     customer.setBusinessName(request.getBusinessName());
-    customer.setRuc(request.getRuc());
-    customer.setContactInfo(request.getContactInfo());
-    customer.setCreationDate(LocalDateTime.now());
-    customer.setStatus(RecordStatus.ACTIVE);
+    customer.setIdentificationNumber(request.getIdentificationNumber());
+    customer.setIdentificationType(request.getIdentificationType());
+    customer.setEmail(request.getEmail());
+    customer.setPhoneNumber(request.getPhoneNumber());
+    customer.setCreationDate(request.getCreationDate());
+    customer.setStatus(request.getStatus());
     return customer;
   }
 
   public CustomerResponse toResponse(Customer customer) {
     CustomerResponse response = new CustomerResponse();
     response.setId(customer.getId());
-    response.setCustomerType(customer.getCustomerType().name());
-    response.setSubType(customer.getSubType().name());
+    response.setCustomerType(customer.getCustomerType());
+    response.setSubType(customer.getSubType());
     response.setFirstName(customer.getFirstName());
     response.setLastName(customer.getLastName());
     response.setBusinessName(customer.getBusinessName());
-    response.setRuc(customer.getRuc());
-    response.setContactInfo(customer.getContactInfo());
+    response.setIdentificationNumber(customer.getIdentificationNumber());
+    response.setIdentificationType(customer.getIdentificationType());
+    response.setEmail(customer.getEmail());
+    response.setPhoneNumber(customer.getPhoneNumber());
     response.setCreationDate(customer.getCreationDate());
-    response.setStatus(customer.getStatus().name());
+    response.setStatus(customer.getStatus());
     return response;
   }
 }

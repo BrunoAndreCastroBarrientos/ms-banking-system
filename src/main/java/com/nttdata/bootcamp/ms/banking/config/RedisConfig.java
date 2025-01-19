@@ -1,39 +1,50 @@
-/*package com.nttdata.bootcamp.ms.banking.config;
+package com.nttdata.bootcamp.ms.banking.config;
 
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
-import org.redisson.spring.cache.CacheConfig;
-import org.redisson.spring.cache.RedissonSpringCacheManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
-import java.util.Collections;
+import java.time.Duration;
 
 @Configuration
-@EnableCaching
 public class RedisConfig {
 
-    public static final String CACHE_NAME = "track";
+  @Value("${spring.redis.host}")
+  private String redisHost;
 
-    @Bean(destroyMethod = "shutdown")
-    public RedissonClient redissonClient() {
-        var config = new Config();
-        config.useSingleServer()
-                .setAddress("")
-                .setPassword("");
-        return Redisson.create(config);
-    }
+  @Value("${spring.redis.port}")
+  private int redisPort;
 
-    @Bean
-    @Autowired
-    public CacheManager cacheManager(RedissonClient redissonClient) {
-        var config = Collections.singletonMap(CACHE_NAME, new CacheConfig());
-        return new RedissonSpringCacheManager(redissonClient, config);
-    }
+  @Value("${spring.redis.password}")
+  private String redisPassword;
 
-}*/
+  @Bean
+  public LettuceConnectionFactory redisConnectionFactory() {
+    RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+    config.setHostName(redisHost);
+    config.setPort(redisPort);
+    config.setPassword(RedisPassword.of(redisPassword));
+
+    return new LettuceConnectionFactory(config);
+  }
+
+  @Bean
+  public CacheManager cacheManager(LettuceConnectionFactory redisConnectionFactory) {
+    RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+        .entryTtl(Duration.ofMinutes(30))
+        .disableCachingNullValues();
+
+    return RedisCacheManager.builder(redisConnectionFactory)
+        .cacheDefaults(defaultCacheConfig)
+        .build();
+  }
+}
+
+

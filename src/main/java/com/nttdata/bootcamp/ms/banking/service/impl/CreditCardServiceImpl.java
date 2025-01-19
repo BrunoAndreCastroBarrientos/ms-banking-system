@@ -38,84 +38,38 @@ public class CreditCardServiceImpl implements CreditCardService {
 
   private final CreditCardRepository creditCardRepository;
   private final CreditCardMapper creditCardMapper;
-  private final WebClient webClient;
 
-  @Value("${service.credit.url}")
-  private String creditsServiceUrl;
-
-
-  @Override
   public Mono<CreditCardResponse> createCreditCard(CreditCardRequest request) {
-    return verifyNoOverdueDebt(request.getCustomerId())
-        .flatMap(hasDebt -> {
-          if (Boolean.TRUE.equals(hasDebt)) {
-            return Mono.error(new ApiValidateException(
-                "El cliente tiene deuda vencida. No se puede emitir nueva tarjeta de crédito."));
-          }
-          // Podrías añadir validaciones: si es VIP/PYME, etc.
-          CreditCard card = creditCardMapper.toEntity(request);
-          return creditCardRepository.save(card);
+    CreditCard creditCard = creditCardMapper.toEntity(request);
+    return creditCardRepository.save(creditCard)
+        .map(creditCardMapper::toResponse);
+  }
+
+  public Mono<CreditCardResponse> getCreditCardById(String id) {
+    return creditCardRepository.findById(id)
+                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+.map(creditCardMapper::toResponse);
+  }
+
+  public Mono<CreditCardResponse> updateCreditCard(String id, CreditCardRequest request) {
+    return creditCardRepository.findById(id)
+                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+.flatMap(existing -> {
+          CreditCard updated = creditCardMapper.toEntity(request);
+          updated.setId(existing.getId());
+          return creditCardRepository.save(updated);
         })
         .map(creditCardMapper::toResponse);
   }
 
-  @Override
-  public Mono<CreditCardResponse> getById(String cardId) {
-    return creditCardRepository.findById(cardId)
-        .map(creditCardMapper::toResponse);
-  }
-
-  @Override
-  public Flux<CreditCardResponse> getByCustomerId(String customerId) {
-    return creditCardRepository.findByCustomerId(customerId)
-        .filter(card -> "CREDIT".equalsIgnoreCase(card.getType()))
-        .map(creditCardMapper::toResponse);
-  }
-
-  @Override
-  public Mono<CreditCardResponse> updateBalance(String cardId, double amount, boolean isPayment) {
-    return creditCardRepository.findById(cardId)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Tarjeta de crédito no encontrada.")))
-        .flatMap(card -> {
-          BigDecimal amt = BigDecimal.valueOf(amount);
-          if (isPayment) {
-            // Pago
-            card.setBalance(card.getBalance().subtract(amt));
-            if (card.getBalance().compareTo(BigDecimal.ZERO) < 0) {
-              card.setBalance(BigDecimal.ZERO);
-            }
-            card.setAvailableLimit(
-                card.getAvailableLimit().add(amt).min(card.getCreditLimit())
-            );
-          } else {
-            // Consumo
-            if (card.getAvailableLimit().compareTo(amt) < 0) {
-              return Mono.error(new ApiValidateException("Límite de crédito insuficiente."));
-            }
-            card.setBalance(card.getBalance().add(amt));
-            card.setAvailableLimit(card.getAvailableLimit().subtract(amt));
-          }
-          return creditCardRepository.save(card);
-        })
-        .map(creditCardMapper::toResponse);
-  }
-
-  @Override
-  public Mono<CreditCardResponse> blockCard(String cardId) {
-    return creditCardRepository.findById(cardId)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Tarjeta de crédito no encontrada.")))
-        .flatMap(card -> {
-          card.setStatus(RecordStatus.BLOCKED);
-          return creditCardRepository.save(card);
-        })
-        .map(creditCardMapper::toResponse);
-  }
-
-  private Mono<Boolean> verifyNoOverdueDebt(String customerId) {
-    return webClient.get()
-        .uri(creditsServiceUrl + "/debts/pending/{customerId}", customerId)
-        .retrieve()
-        .bodyToMono(Boolean.class)
-        .defaultIfEmpty(false);
+  public Mono<Void> deleteCreditCard(String id) {
+    creditCardRepository.findById(id)
+        .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+        .flatMap(existing -> {
+          existing.setStatus(RecordStatus.INACTIVE);
+          creditCardRepository.save(existing);
+          return null;
+        });
+    return null;
   }
 }

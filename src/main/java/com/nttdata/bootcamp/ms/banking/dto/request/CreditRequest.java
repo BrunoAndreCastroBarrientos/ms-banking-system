@@ -1,6 +1,7 @@
 package com.nttdata.bootcamp.ms.banking.dto.request;
 
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CreditType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,34 +20,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreditRequest {
 
-  @NotBlank(message = "El ID del cliente no puede estar vacío.") // ID del cliente
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID del cliente debe ser un UUID válido.")
-  private String customerId;
+  @NotBlank(message = "Customer ID is mandatory")
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Customer ID must be a 24-character alphanumeric string")
+  private String customerId; // ID del cliente titular del crédito
 
-  @NotBlank(message = "El tipo de crédito no puede estar vacío.") // Tipo de crédito: PERSONAL o ENTERPRISE
-  @Pattern(regexp = "PERSONAL|ENTERPRISE",
-      message = "El tipo de crédito debe ser PERSONAL o ENTERPRISE.")
-  private CreditType creditType;
+  @NotNull(message = "Credit type is mandatory")
+  private CreditType creditType; // Tipo de crédito (PERSONAL, ENTERPRISE)
 
-  @NotNull(message = "El monto principal no puede ser nulo.") // Monto principal del crédito
-  @DecimalMin(value = "0.01", inclusive = true,
-      message = "El monto principal debe ser mayor a 0.")
-  private BigDecimal principalAmount;
+  @NotNull(message = "Amount is mandatory")
+  @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than zero")
+  private BigDecimal amount; // Monto principal del crédito
 
-  @NotNull(message = "La tasa de interés no puede ser nula.") // Tasa de interés del crédito
-  @DecimalMin(value = "0.01", inclusive = true,
-      message = "La tasa de interés debe ser mayor a 0.")
-  @Digits(integer = 3, fraction = 2,
-      message = "La tasa de interés debe ser un valor válido con hasta 3 enteros y 2 decimales.")
-  private BigDecimal interestRate;
+  @NotNull(message = "Interest rate is mandatory")
+  @DecimalMin(value = "0.0", inclusive = false, message = "Interest rate must be greater than zero")
+  private BigDecimal interestRate; // Tasa de interés aplicada
 
-  @DecimalMin(value = "0.0", inclusive = true,
-      message = "La cuota mensual debe ser mayor o igual a 0.") // Cuota mensual (opcional)
-  @Digits(integer = 18, fraction = 2,
-      message = "La cuota mensual debe tener como máximo 18 dígitos enteros y 2 decimales.")
-  private BigDecimal monthlyPayment;
+  @NotNull(message = "Due date is mandatory")
+  private LocalDate dueDate; // Fecha de vencimiento
 
-  @Future(message = "La fecha de vencimiento debe ser una fecha futura.") // Fecha de vencimiento del crédito
-  private LocalDate dueDate;
+  @NotNull(message = "Status is mandatory")
+  private RecordStatus status; // Estado del crédito (ACTIVE, CANCELLED, etc.)
 }

@@ -1,20 +1,17 @@
 package com.nttdata.bootcamp.ms.banking.service.impl;
 
-import com.nttdata.bootcamp.ms.banking.dto.response.AccountResponse;
-import com.nttdata.bootcamp.ms.banking.dto.response.ConsolidatedResponse;
-import com.nttdata.bootcamp.ms.banking.dto.response.CreditResponse;
-import com.nttdata.bootcamp.ms.banking.dto.response.TransactionResponse;
-import org.springframework.beans.factory.annotation.Value;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.nttdata.bootcamp.ms.banking.dto.response.AverageBalanceResponse;
+import com.nttdata.bootcamp.ms.banking.dto.response.CardTransactionResponse;
+import com.nttdata.bootcamp.ms.banking.dto.response.ClientSummaryResponse;
+import com.nttdata.bootcamp.ms.banking.repository.AccountRepository;
+import com.nttdata.bootcamp.ms.banking.repository.TransactionRepository;
 import com.nttdata.bootcamp.ms.banking.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  * Implementación del servicio de reportes.
@@ -37,64 +34,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
 
-  private final WebClient webClient;
+  private final TransactionRepository transactionRepository;
+  private final AccountRepository accountRepository;
 
-  @Value("${service.account.url}")
-  private String accountsServiceUrl;
-
-  @Value("${service.credit.url}")
-  private String creditsServiceUrl;
-
-  @Value("${service.transaction.url}")
-  private String transactionsServiceUrl;
-
-  @Override
-  public Mono<ConsolidatedResponse> getCustomerSummary(String customerId) {
-    Mono<List<AccountResponse>> accounts = webClient.get()
-        .uri(accountsServiceUrl + "/customer/{id}", customerId)
-        .retrieve()
-        .bodyToFlux(AccountResponse.class)
-        .collectList();
-
-    Mono<List<CreditResponse>> credits = webClient.get()
-        .uri(creditsServiceUrl + "/customer/{id}", customerId)
-        .retrieve()
-        .bodyToFlux(CreditResponse.class)
-        .collectList();
-
-    Mono<List<TransactionResponse>> transactions = webClient.get()
-        .uri(transactionsServiceUrl + "/customer/{id}", customerId)
-        .retrieve()
-        .bodyToFlux(TransactionResponse.class)
-        .collectList();
-
-    return Mono.zip(accounts, credits, transactions)
-        .map(tuple -> new ConsolidatedResponse(customerId, tuple.getT1(), tuple.getT2(), tuple.getT3()));
+  public Flux<AverageBalanceResponse> generateAverageBalanceReport(LocalDateTime startDate, LocalDateTime endDate) {
+    return accountRepository.findAll()
+        .filter(account -> account.getOpenDate().isAfter(startDate) && account.getOpenDate().isBefore(endDate))
+        .map(account -> new AverageBalanceResponse(account.getId(), account.getBalance()));
   }
 
-  @Override
-  public Mono<BigDecimal> getAverageAccountBalance(String customerId) {
-    return webClient.get()
-        .uri(accountsServiceUrl + "/customer/{id}/average-balance", customerId)
-        .retrieve()
-        .bodyToMono(BigDecimal.class);
+  public Mono<ClientSummaryResponse> generateClientSummary(String clientId) {
+    return accountRepository.findByCustomerId(clientId)
+        .collectList()
+        .map(accounts -> new ClientSummaryResponse(clientId, accounts.size()));
   }
 
-  @Override
-  public Mono<List<TransactionResponse>> getAccountTransactions(String accountId) {
-    return webClient.get()
-        .uri(transactionsServiceUrl + "/account/{id}", accountId)
-        .retrieve()
-        .bodyToFlux(TransactionResponse.class)
-        .collectList();
-  }
-
-  @Override
-  public Mono<List<TransactionResponse>> getCardLast10Transactions(String cardId) {
-    return webClient.get()
-        .uri(transactionsServiceUrl + "/card/{id}/last10", cardId)
-        .retrieve()
-        .bodyToFlux(TransactionResponse.class)
-        .collectList();
+  public Mono<CardTransactionResponse> getLast10CardTransactions(String cardId) {
+    return transactionRepository.findByCreditCardId(cardId)
+        .take(10)
+        .collectList()
+        .map(transactions -> new CardTransactionResponse(cardId, transactions.size()));
   }
 }

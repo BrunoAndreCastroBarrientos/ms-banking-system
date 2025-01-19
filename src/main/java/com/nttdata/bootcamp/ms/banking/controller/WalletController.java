@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 /**
  * Controller for managing transaction-related operations.
  * Provides endpoints for creating, retrieving, and managing transactions.
@@ -32,23 +34,18 @@ public class WalletController {
 
   private final WalletService walletService;
 
-  @PostMapping
-  public Mono<WalletResponse> createWallet(@RequestBody WalletRequest request) {
-    return walletService.createWallet(request);
+  @PostMapping("/send-payment")
+  public Mono<WalletResponse> sendPayment(@RequestBody WalletRequest request, @RequestParam BigDecimal amount) {
+    return walletService.sendPayment(request, amount);
+  }
+
+  @PostMapping("/receive-payment")
+  public Mono<WalletResponse> receivePayment(@RequestBody WalletRequest request, @RequestParam BigDecimal amount) {
+    return walletService.receivePayment(request, amount);
   }
 
   @GetMapping("/{phoneNumber}")
-  public Mono<WalletResponse> getWallet(@PathVariable String phoneNumber) {
-    return walletService.getWalletByPhoneNumber(phoneNumber);
-  }
-
-  @PostMapping("/associate")
-  public Mono<WalletResponse> associateDebitCard(@RequestParam String phoneNumber, @RequestParam String debitCardNumber) {
-    return walletService.associateDebitCard(phoneNumber, debitCardNumber);
-  }
-
-  @PostMapping("/send-payment")
-  public Mono<WalletResponse> sendPayment(@RequestParam String fromPhoneNumber, @RequestParam String toPhoneNumber, @RequestParam Double amount) {
-    return walletService.sendPayment(fromPhoneNumber, toPhoneNumber, amount);
+  public Mono<WalletResponse> getWalletDetails(@PathVariable String phoneNumber) {
+    return walletService.getWalletDetails(phoneNumber);
   }
 }

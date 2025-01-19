@@ -9,25 +9,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class DebitCardMapper {
 
-  public static DebitCard toEntity(DebitCardRequest request) {
-    DebitCard card = new DebitCard();
-    card.setCustomerId(request.getCustomerId());
-    card.setCardType(request.getCardType());
-    card.setAssociatedAccounts(request.getAssociatedAccounts());
-    card.setPrimaryAccount(request.getPrimaryAccount());
-    card.setStatus(RecordStatus.ACTIVE);
-    card.setType("DEBIT"); // Discriminator
-    return card;
+  public DebitCard toEntity(DebitCardRequest request) {
+    DebitCard debitCard = new DebitCard();
+    debitCard.setCustomerId(request.getCustomerId());
+    debitCard.setType(request.getType());
+    debitCard.setCardType(request.getCardType());
+    debitCard.setAssociatedAccounts(request.getAssociatedAccounts());
+    debitCard.setStatus(request.getStatus());
+    return debitCard;
   }
 
-  public DebitCardResponse toResponse(DebitCard card) {
-    DebitCardResponse resp = new DebitCardResponse();
-    resp.setId(card.getId());
-    resp.setCustomerId(card.getCustomerId());
-    resp.setCardType(card.getCardType());
-    resp.setAssociatedAccounts(card.getAssociatedAccounts());
-    resp.setPrimaryAccount(card.getPrimaryAccount());
-    resp.setStatus(card.getStatus().name());
-    return resp;
+  public DebitCardResponse toResponse(DebitCard debitCard) {
+    DebitCardResponse response = new DebitCardResponse();
+    response.setId(debitCard.getId());
+    response.setCustomerId(debitCard.getCustomerId());
+    response.setType(debitCard.getType());
+    response.setCardType(debitCard.getCardType());
+    response.setAssociatedAccounts(debitCard.getAssociatedAccounts());
+    response.setStatus(debitCard.getStatus());
+    return response;
   }
 }

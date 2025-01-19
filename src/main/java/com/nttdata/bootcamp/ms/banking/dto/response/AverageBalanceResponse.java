@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Response DTO para la cuenta bancaria.
@@ -19,11 +19,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WalletResponse {
-  private Long id; // Identificador único de la billetera
-  private String identificationNumber; // Número de identificación
-  private String phoneNumber; // Número de teléfono
-  private String email; // Correo electrónico
-  private BigDecimal balance; // Saldo
+public class AverageBalanceResponse {
+  private String accountId;
+  private BigDecimal balance;
 }
 

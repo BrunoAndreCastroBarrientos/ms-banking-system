@@ -14,19 +14,21 @@ import java.time.LocalDateTime;
 @Component
 public class WalletMapper {
 
-  public static Wallet toEntity(WalletRequest request) {
+  public Wallet toEntity(WalletRequest request) {
     Wallet wallet = new Wallet();
-    wallet.setDocumentId(request.getDocumentId());
+    wallet.setIdentificationNumber(request.getIdentificationNumber());
     wallet.setPhoneNumber(request.getPhoneNumber());
-    wallet.setImei(request.getImei());
     wallet.setEmail(request.getEmail());
-    wallet.setBalance(0.0);
+    wallet.setBalance(request.getBalance());
     return wallet;
   }
 
-  public static WalletResponse toResponse(Wallet wallet) {
+  public WalletResponse toResponse(Wallet wallet) {
     WalletResponse response = new WalletResponse();
+    response.setId(wallet.getId());
+    response.setIdentificationNumber(wallet.getIdentificationNumber());
     response.setPhoneNumber(wallet.getPhoneNumber());
+    response.setEmail(wallet.getEmail());
     response.setBalance(wallet.getBalance());
     return response;
   }

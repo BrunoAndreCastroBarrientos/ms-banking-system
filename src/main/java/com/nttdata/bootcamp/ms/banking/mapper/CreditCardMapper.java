@@ -12,30 +12,30 @@ import java.time.LocalDate;
 @Component
 public class CreditCardMapper {
 
-  public static CreditCard toEntity(CreditCardRequest request) {
-    CreditCard card = new CreditCard();
-    card.setCustomerId(request.getCustomerId());
-    card.setCardType(request.getCardType());
-    card.setCreditLimit(request.getCreditLimit());
-    card.setAvailableLimit(
-        request.getAvailableLimit() != null ? request.getAvailableLimit() : request.getCreditLimit());
-    card.setBalance(request.getBalance() != null ? request.getBalance() : BigDecimal.ZERO);
-    card.setCutoffDate(request.getCutoffDate() != null ? request.getCutoffDate() : LocalDate.now().plusMonths(1));
-    card.setStatus(RecordStatus.ACTIVE);
-    card.setType("CREDIT"); // Discriminator
-    return card;
+  public CreditCard toEntity(CreditCardRequest request) {
+    CreditCard creditCard = new CreditCard();
+    creditCard.setCardNumber(request.getCardNumber());
+    creditCard.setCustomerId(request.getCustomerId());
+    creditCard.setType(request.getType());
+    creditCard.setCardType(request.getCardType());
+    creditCard.setCreditLimit(request.getCreditLimit());
+    creditCard.setBalance(request.getBalance());
+    creditCard.setCutoffDate(request.getCutoffDate());
+    creditCard.setStatus(request.getStatus());
+    return creditCard;
   }
 
-  public CreditCardResponse toResponse(CreditCard card) {
-    CreditCardResponse resp = new CreditCardResponse();
-    resp.setId(card.getId());
-    resp.setCustomerId(card.getCustomerId());
-    resp.setCardType(card.getCardType());
-    resp.setCreditLimit(card.getCreditLimit());
-    resp.setAvailableLimit(card.getAvailableLimit());
-    resp.setBalance(card.getBalance());
-    resp.setCutoffDate(card.getCutoffDate());
-    resp.setStatus(card.getStatus().name());
-    return resp;
+  public CreditCardResponse toResponse(CreditCard creditCard) {
+    CreditCardResponse response = new CreditCardResponse();
+    response.setId(creditCard.getId());
+    response.setCardNumber(creditCard.getCardNumber());
+    response.setCustomerId(creditCard.getCustomerId());
+    response.setType(creditCard.getType());
+    response.setCardType(creditCard.getCardType());
+    response.setCreditLimit(creditCard.getCreditLimit());
+    response.setBalance(creditCard.getBalance());
+    response.setCutoffDate(creditCard.getCutoffDate());
+    response.setStatus(creditCard.getStatus());
+    return response;
   }
 }

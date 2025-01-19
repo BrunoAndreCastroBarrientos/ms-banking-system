@@ -1,10 +1,14 @@
 package com.nttdata.bootcamp.ms.banking.service.impl;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.TransactionType;
 import com.nttdata.bootcamp.ms.banking.entity.Transaction;
 import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.mapper.TransactionMapper;
 import com.nttdata.bootcamp.ms.banking.dto.request.TransactionRequest;
 import com.nttdata.bootcamp.ms.banking.dto.response.TransactionResponse;
+import com.nttdata.bootcamp.ms.banking.repository.AccountRepository;
+import com.nttdata.bootcamp.ms.banking.repository.CreditCardRepository;
+import com.nttdata.bootcamp.ms.banking.repository.CreditRepository;
 import com.nttdata.bootcamp.ms.banking.repository.TransactionRepository;
 import com.nttdata.bootcamp.ms.banking.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -33,169 +37,106 @@ import java.math.BigDecimal;
 public class TransactionServiceImpl implements TransactionService {
 
   private final TransactionRepository transactionRepository;
-  private final WebClient.Builder webClientBuilder;
+  private final AccountRepository accountRepository;
+  private final CreditRepository creditRepository;
+  private final CreditCardRepository creditCardRepository;
+  private final TransactionMapper transactionMapper;
 
-  @Override
   public Mono<TransactionResponse> processTransaction(TransactionRequest request) {
-    return validateTransaction(request) // Validar la transacción
-        .flatMap(validTransaction -> performTransaction(validTransaction)) // Realizar la transacción
-        .flatMap(transaction -> transactionRepository.save(transaction)) // Guardar la transacción
-        .map(TransactionMapper::toResponse); // Mapear a la respuesta
-  }
-
-
-  private Mono<Transaction> validateTransaction(TransactionRequest request) {
-    // General validation logic (e.g., null checks, format validation)
-    if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-      return Mono.error(new ApiValidateException("Amount must be greater than zero."));
-    }
-
-    // Additional validations based on transaction type
     switch (request.getTransactionType()) {
       case DEPOSIT:
+        return handleDeposit(request);
       case WITHDRAWAL:
-        return validateAccountTransaction(request);
+        return handleWithdrawal(request);
       case TRANSFER:
-        return validateTransfer(request);
+        return handleTransfer(request);
       case CREDIT_PAYMENT:
-        return validateCreditPayment(request);
+        return handleCreditPayment(request);
       case CREDIT_CARD_PAYMENT:
-        return validateCreditCardPayment(request);
+        return handleCreditCardPayment(request);
       default:
-        return Mono.error(new ApiValidateException("Unsupported transaction type."));
+        return Mono.error(new IllegalArgumentException("Unsupported transaction type"));
     }
   }
 
-  private Mono<Transaction> validateAccountTransaction(TransactionRequest request) {
-    return webClientBuilder.build()
-        .get()
-        .uri("http://account-service/api/accounts/{id}", request.getOriginAccountId())
-        .retrieve()
-        .bodyToMono(Transaction.class)
-        .flatMap(account -> Mono.just(TransactionMapper.toEntity(request)));
+  private Mono<TransactionResponse> handleDeposit(TransactionRequest request) {
+    return accountRepository.findById(request.getDestinationAccountId())
+        .flatMap(account -> {
+          account.setBalance(account.getBalance().add(request.getAmount()));
+          return accountRepository.save(account);
+        })
+        .flatMap(account -> {
+          Transaction transaction = transactionMapper.toEntity(request);
+          transaction.setTransactionType(TransactionType.DEPOSIT);
+          return transactionRepository.save(transaction);
+        })
+        .map(transactionMapper::toResponse);
   }
 
-  private Mono<Transaction> validateTransfer(TransactionRequest request) {
-    return webClientBuilder.build()
-        .get()
-        .uri("http://account-service/api/accounts/{id}", request.getOriginAccountId())
-        .retrieve()
-        .bodyToMono(Transaction.class)
+  private Mono<TransactionResponse> handleWithdrawal(TransactionRequest request) {
+    return accountRepository.findById(request.getOriginAccountId())
+        .flatMap(account -> {
+          if (account.getBalance().compareTo(request.getAmount()) < 0) {
+            return Mono.error(new ApiValidateException("Insufficient funds"));
+          }
+          account.setBalance(account.getBalance().subtract(request.getAmount()));
+          return accountRepository.save(account);
+        })
+        .flatMap(account -> {
+          Transaction transaction = transactionMapper.toEntity(request);
+          transaction.setTransactionType(TransactionType.WITHDRAWAL);
+          return transactionRepository.save(transaction);
+        })
+        .map(transactionMapper::toResponse);
+  }
+
+  private Mono<TransactionResponse> handleTransfer(TransactionRequest request) {
+    return accountRepository.findById(request.getOriginAccountId())
         .flatMap(originAccount -> {
-          return webClientBuilder.build()
-              .get()
-              .uri("http://account-service/api/accounts/{id}", request.getDestinationAccountId())
-              .retrieve()
-              .bodyToMono(Transaction.class)
-              .flatMap(destinationAccount -> {
-                return Mono.just(TransactionMapper.toEntity(request));
-              });
-        });
+          if (originAccount.getBalance().compareTo(request.getAmount()) < 0) {
+            return Mono.error(new ApiValidateException("Insufficient funds"));
+          }
+          originAccount.setBalance(originAccount.getBalance().subtract(request.getAmount()));
+          return accountRepository.save(originAccount);
+        })
+        .then(accountRepository.findById(request.getDestinationAccountId()))
+        .flatMap(destinationAccount -> {
+          destinationAccount.setBalance(destinationAccount.getBalance().add(request.getAmount()));
+          return accountRepository.save(destinationAccount);
+        })
+        .flatMap(destinationAccount -> {
+          Transaction transaction = transactionMapper.toEntity(request);
+          transaction.setTransactionType(TransactionType.TRANSFER);
+          return transactionRepository.save(transaction);
+        })
+        .map(transactionMapper::toResponse);
   }
 
-  private Mono<Transaction> validateCreditPayment(TransactionRequest request) {
-    return webClientBuilder.build()
-        .get()
-        .uri("http://credit-service/api/credits/{id}", request.getCreditId())
-        .retrieve()
-        .bodyToMono(Transaction.class)
+  private Mono<TransactionResponse> handleCreditPayment(TransactionRequest request) {
+    return creditRepository.findById(request.getCreditId())
         .flatMap(credit -> {
-          return Mono.just(TransactionMapper.toEntity(request));
-        });
+          credit.setAmount(credit.getAmount().subtract(request.getAmount()));
+          return creditRepository.save(credit);
+        })
+        .flatMap(credit -> {
+          Transaction transaction = transactionMapper.toEntity(request);
+          transaction.setTransactionType(TransactionType.CREDIT_PAYMENT);
+          return transactionRepository.save(transaction);
+        })
+        .map(transactionMapper::toResponse);
   }
 
-  private Mono<Transaction> validateCreditCardPayment(TransactionRequest request) {
-    return webClientBuilder.build()
-        .get()
-        .uri("http://card-service/api/credit-cards/{id}", request.getCreditCardId())
-        .retrieve()
-        .bodyToMono(Transaction.class)
-        .flatMap(card -> {
-          return Mono.just(TransactionMapper.toEntity(request));
-        });
-  }
-
-  private Mono<Transaction> performTransaction(Transaction request) {
-    switch (request.getTransactionType()) {
-      case DEPOSIT:
-      case WITHDRAWAL:
-      case TRANSFER:
-        return updateAccountBalances(request);
-      case CREDIT_PAYMENT:
-        return updateCreditBalance(request);
-      case CREDIT_CARD_PAYMENT:
-        return updateCreditCardBalance(request);
-      default:
-        return Mono.error(new ApiValidateException("Unsupported transaction type."));
-    }
-  }
-
-  private Mono<Transaction> updateAccountBalances(Transaction request) {
-    // Call account microservice to update balances
-    return webClientBuilder.build()
-        .post()
-        .uri("http://account-service/api/accounts/balance")
-        .bodyValue(request)
-        .retrieve()
-        .bodyToMono(Void.class)
-        .then(Mono.just(request));
-  }
-
-  private Mono<Transaction> updateCreditBalance(Transaction request) {
-    // Call credit microservice to update credit balance
-    return webClientBuilder.build()
-        .post()
-        .uri("http://credit-service/api/credits/balance")
-        .bodyValue(request)
-        .retrieve()
-        .bodyToMono(Void.class)
-        .then(Mono.just(request));
-  }
-
-  private Mono<Transaction> updateCreditCardBalance(Transaction request) {
-    // Call card microservice to update card balance
-    return webClientBuilder.build()
-        .post()
-        .uri("http://card-service/api/credit-cards/balance")
-        .bodyValue(request)
-        .retrieve()
-        .bodyToMono(Void.class)
-        .then(Mono.just(request));
-  }
-
-  @Override
-  public Mono<TransactionResponse> getById(String id) {
-    return transactionRepository.findById(id)
-        .map(TransactionMapper::toResponse);
-  }
-
-  @Override
-  public Flux<TransactionResponse> getAll() {
-    return transactionRepository.findAll()
-        .map(TransactionMapper::toResponse);
-  }
-
-  @Override
-  public Flux<TransactionResponse> getByAccountId(String accountId) {
-    return transactionRepository.findByOriginAccountId(accountId)
-        .map(TransactionMapper::toResponse);
-  }
-
-  @Override
-  public Flux<TransactionResponse> getByCreditId(String creditId) {
-    return transactionRepository.findByCreditId(creditId)
-        .map(TransactionMapper::toResponse);
-  }
-
-  @Override
-  public Flux<TransactionResponse> getByCreditCardId(String creditCardId) {
-    return transactionRepository.findByCreditCardId(creditCardId)
-        .map(TransactionMapper::toResponse);
-  }
-
-  @Override
-  public Flux<TransactionResponse> getByDebitCardId(String debitCardId) {
-    return transactionRepository.findByDebitCardId(debitCardId)
-        .map(TransactionMapper::toResponse);
+  private Mono<TransactionResponse> handleCreditCardPayment(TransactionRequest request) {
+    return creditCardRepository.findById(request.getCreditCardId())
+        .flatMap(creditCard -> {
+          creditCard.setBalance(creditCard.getBalance().subtract(request.getAmount()));
+          return creditCardRepository.save(creditCard);
+        })
+        .flatMap(creditCard -> {
+          Transaction transaction = transactionMapper.toEntity(request);
+          transaction.setTransactionType(TransactionType.CREDIT_CARD_PAYMENT);
+          return transactionRepository.save(transaction);
+        })
+        .map(transactionMapper::toResponse);
   }
 }

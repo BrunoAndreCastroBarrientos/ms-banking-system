@@ -1,6 +1,7 @@
 package com.nttdata.bootcamp.ms.banking.dto.request;
 
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,23 +19,21 @@ import java.util.List;
 @NoArgsConstructor
 public class DebitCardRequest {
 
-  @NotBlank(message = "El ID del cliente no puede estar vacío.") // ID del cliente al que pertenece la tarjeta
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID del cliente debe ser un UUID válido.")
-  private String customerId;
+  @NotBlank(message = "Customer ID is mandatory")
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Customer ID must be a 24-character alphanumeric string")
+  private String customerId; // ID del cliente
 
-  @NotNull(message = "El tipo de tarjeta no puede ser nulo.") // Tipo de tarjeta: PERSONAL o ENTERPRISE (si aplica)
-  private CardType cardType;
+  @NotBlank(message = "Type is mandatory")
+  @Pattern(regexp = "^DEBIT$", message = "Type must be 'DEBIT'")
+  private String type; // "DEBIT"
 
-  @NotNull(message = "La lista de cuentas asociadas no puede ser nula.") // Cuentas asociadas a la tarjeta
-  @Size(min = 1, message = "Debe asociarse al menos una cuenta a la tarjeta de débito.")
-  private List<
-      @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-          message = "El ID de la cuenta debe ser un UUID válido.")
-          String> associatedAccounts;
+  private CardType cardType; // "PERSONAL" o "ENTERPRISE" (opcional si aplica)
 
-  @NotBlank(message = "El ID de la cuenta principal no puede estar vacío.") // ID de la cuenta principal
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID de la cuenta principal debe ser un UUID válido.")
-  private String primaryAccount;
+  @NotNull(message = "Associated accounts are mandatory")
+  @Size(min = 1, message = "At least one associated account is required")
+  private List<@Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Each account ID must be a 24-character alphanumeric string") String> associatedAccounts; // IDs de cuentas bancarias del cliente
+
+  @NotNull(message = "Status is mandatory")
+  private RecordStatus status; // ACTIVE, BLOCKED, etc.
+
 }

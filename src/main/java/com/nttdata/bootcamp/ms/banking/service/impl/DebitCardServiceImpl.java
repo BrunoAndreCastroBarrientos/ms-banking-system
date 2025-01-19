@@ -1,6 +1,7 @@
 package com.nttdata.bootcamp.ms.banking.service.impl;
 
 import com.nttdata.bootcamp.ms.banking.entity.DebitCard;
+import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.mapper.DebitCardMapper;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import com.nttdata.bootcamp.ms.banking.dto.request.DebitCardRequest;
@@ -42,83 +43,38 @@ public class DebitCardServiceImpl implements DebitCardService {
 
   private final DebitCardRepository debitCardRepository;
   private final DebitCardMapper debitCardMapper;
-  private final WebClient webClient;
 
-  @Value("${service.transaction.url}")
-  private String transactionsServiceUrl;
-  @Value("${service.account.url}")
-  private String accountsServiceUrl;
-
-  @Override
   public Mono<DebitCardResponse> createDebitCard(DebitCardRequest request) {
-    DebitCard card = debitCardMapper.toEntity(request);
-    card.setType("DEBIT");
-    card.setStatus(RecordStatus.ACTIVE);
-    return debitCardRepository.save(card)
+    DebitCard debitCard = debitCardMapper.toEntity(request);
+    return debitCardRepository.save(debitCard)
         .map(debitCardMapper::toResponse);
   }
 
-  @Override
-  public Mono<DebitCardResponse> getById(String cardId) {
-    return debitCardRepository.findById(cardId)
-        .switchIfEmpty(Mono.error(new RuntimeException("Tarjeta de débito no encontrada.")))
-        .map(debitCardMapper::toResponse);
+  public Mono<DebitCardResponse> getDebitCardById(String id) {
+    return debitCardRepository.findById(id)
+                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+.map(debitCardMapper::toResponse);
   }
 
-  @Override
-  public Flux<DebitCardResponse> getByCustomerId(String customerId) {
-    return debitCardRepository.findByCustomerId(customerId)
-        .filter(card -> "DEBIT".equalsIgnoreCase(card.getType()))
-        .map(debitCardMapper::toResponse);
-  }
-
-  @Override
-  public Mono<Void> withdraw(String cardId, double amount) {
-    return debitCardRepository.findById(cardId)
-        .switchIfEmpty(Mono.error(new RuntimeException("Tarjeta de débito no encontrada.")))
-        .flatMap(card -> performCascadeWithdrawal(card, amount));
-  }
-
-  private Mono<Void> performCascadeWithdrawal(DebitCard card, double amount) {
-    List<String> accounts = card.getAssociatedAccounts();
-    return debitInOrder(accounts, amount).then();
-  }
-
-  private Mono<Double> debitInOrder(List<String> accounts, double amount) {
-    if (accounts.isEmpty() || amount <= 0) {
-      return Mono.just(amount);
-    }
-    String accountId = accounts.get(0);
-    return webClient.patch()
-        .uri(accountsServiceUrl + "/{accountId}/debit?amount={amt}", accountId, amount)
-        .retrieve()
-        .bodyToMono(BigDecimal.class)
-        .map(BigDecimal::doubleValue)
-        .flatMap(remaining -> {
-          if (remaining <= 0) {
-            return Mono.just(0.0);
-          }
-          return debitInOrder(accounts.subList(1, accounts.size()), remaining);
-        });
-  }
-
-
-  @Override
-  public Mono<DebitCardResponse> blockCard(String cardId) {
-    return debitCardRepository.findById(cardId)
-        .switchIfEmpty(Mono.error(new RuntimeException("Tarjeta de débito no encontrada.")))
-        .flatMap(card -> {
-          card.setStatus(RecordStatus.BLOCKED);
-          return debitCardRepository.save(card);
+  public Mono<DebitCardResponse> updateDebitCard(String id, DebitCardRequest request) {
+    return debitCardRepository.findById(id)
+                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+.flatMap(existing -> {
+          DebitCard updated = debitCardMapper.toEntity(request);
+          updated.setId(existing.getId());
+          return debitCardRepository.save(updated);
         })
         .map(debitCardMapper::toResponse);
   }
 
-  @Override
-  public Flux<String> getLastMovements(String cardId, int limit) {
-    return webClient.get()
-        .uri( transactionsServiceUrl + "/debitCard/{cardId}?limit={limit}", cardId, limit)
-        .retrieve()
-        .bodyToFlux(String.class);
+  public Mono<Void> deleteDebitCard(String id) {
+    debitCardRepository.findById(id)
+        .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+        .flatMap(existing -> {
+          existing.setStatus(RecordStatus.INACTIVE);
+          debitCardRepository.save(existing);
+          return null;
+        });
+    return null;
   }
 }

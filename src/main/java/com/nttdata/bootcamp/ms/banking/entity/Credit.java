@@ -23,20 +23,10 @@ import java.time.LocalDate;
 public class Credit {
   @Id
   private String id;                      // Identificador único del crédito
-
   private String customerId;              // ID del cliente titular del crédito
-
   private CreditType creditType;          // Tipo de crédito (PERSONAL, ENTERPRISE)
-
-  private BigDecimal principalAmount;     // Monto principal del crédito
-
-  private BigDecimal outstandingBalance;  // Saldo pendiente
-
+  private BigDecimal amount;              // Monto principal del crédito
   private BigDecimal interestRate;        // Tasa de interés aplicada
-
-  private LocalDate dueDate;             // Fecha de vencimiento (puede ser de cuota o final)
-
-  private BigDecimal monthlyPayment;      // Cuota mensual (si aplica)
-
+  private LocalDate dueDate;              // Fecha de vencimiento
   private RecordStatus status;            // Estado del crédito (ACTIVE, CANCELLED, etc.)
 }

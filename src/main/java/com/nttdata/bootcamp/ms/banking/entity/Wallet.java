@@ -28,9 +28,9 @@ import java.time.LocalDateTime;
 public class Wallet {
   @Id
   private Long id;
-  private String documentId;
+  private String identificationNumber;
   private String phoneNumber;
-  private String imei;
   private String email;
-  private Double balance;
+  private BigDecimal balance;
+  private RecordStatus status;
 }

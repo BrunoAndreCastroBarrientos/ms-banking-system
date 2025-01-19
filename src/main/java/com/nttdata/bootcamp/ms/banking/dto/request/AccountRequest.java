@@ -3,6 +3,8 @@ package com.nttdata.bootcamp.ms.banking.dto.request;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.AccountType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,30 +25,24 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 public class AccountRequest {
 
-  @NotBlank(message = "El ID del cliente no puede estar vacío.") //ID del cliente a vinculado
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID del cliente debe ser un UUID válido.")
-  private String customerId;
+  @NotBlank(message = "Customer ID is mandatory")
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Customer ID must be a 24-character alphanumeric string")
+  private String customerId; // ID del cliente propietario de la cuenta
 
-  @NotBlank(message = "El tipo de cuenta no puede estar vacío.") //(SAVINGS, CHECKING, TIME_DEPOSIT)
-  @Pattern(regexp = "SAVINGS|CHECKING|TIME_DEPOSIT",
-      message = "El tipo de cuenta debe ser SAVINGS, CHECKING o TIME_DEPOSIT.")
-  private String accountType;
+  @NotNull(message = "Account type is mandatory")
+  private AccountType accountType; // Tipo de cuenta (SAVINGS, CHECKING, TIME_DEPOSIT)
 
-  @NotBlank(message = "La moneda no puede estar vacía.") //(ISO 4217: USD, EUR, PEN)
-  @Pattern(regexp = "USD|EUR|PEN",
-      message = "La moneda debe ser USD, EUR o PEN.")
-  private String currency;
+  @NotNull(message = "Balance is mandatory")
+  @DecimalMin(value = "0.0", inclusive = true, message = "Balance must be non-negative")
+  private BigDecimal balance; // Saldo actual de la cuenta
 
-  @NotNull(message = "El número de transacciones permitidas no puede ser nulo.") // Máximo de transacciones sin comisión
-  @Min(value = 0, message = "El número de transacciones permitidas debe ser mayor o igual a 0.")
-  private Integer transactionsAllowed;
+  @NotBlank(message = "Currency is mandatory")
+  @Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a 3-letter uppercase code (e.g., USD, EUR)")
+  private String currency; // Moneda de la cuenta (ej. USD, EUR, etc.)
 
-  @NotNull(message = "La comisión de mantenimiento no puede ser nula.") // Comisión de mantenimiento (>= 0.0)
-  @DecimalMin(value = "0.0", inclusive = true,
-      message = "La comisión de mantenimiento debe ser mayor o igual a 0.")
-  private BigDecimal maintenanceFee;
+  @NotNull(message = "Open date is mandatory")
+  private LocalDateTime openDate; // Fecha de apertura de la cuenta
 
-  @FutureOrPresent(message = "La fecha de corte debe ser futura o presente.") // Fecha de corte de la cuenta
-  private LocalDateTime cutoffDate;
+  @NotNull(message = "Status is mandatory")
+  private RecordStatus status; // Estado de la cuenta (ACTIVE, CLOSED, etc.)
 }

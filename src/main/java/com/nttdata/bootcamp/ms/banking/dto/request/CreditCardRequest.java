@@ -1,6 +1,7 @@
 package com.nttdata.bootcamp.ms.banking.dto.request;
 
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,31 +20,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreditCardRequest {
 
-  @NotBlank(message = "El ID del cliente no puede estar vacío.") // ID del cliente dueño de la tarjeta
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID del cliente debe ser un UUID válido.")
-  private String customerId;
+  @NotBlank(message = "Card number is mandatory")
+  @Pattern(regexp = "^[0-9]{16}$", message = "Card number must be a 16-digit number")
+  private String cardNumber; // Número de la tarjeta
 
-  @NotBlank(message = "El tipo de tarjeta no puede estar vacío.") // Tipo de tarjeta: PERSONAL o ENTERPRISE
-  @Pattern(regexp = "PERSONAL|ENTERPRISE",
-      message = "El tipo de tarjeta debe ser PERSONAL o ENTERPRISE.")
-  private CardType cardType;
+  @NotBlank(message = "Customer ID is mandatory")
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Customer ID must be a 24-character alphanumeric string")
+  private String customerId; // ID del cliente
 
-  @NotNull(message = "El límite de crédito no puede ser nulo.") // Límite total de crédito de la tarjeta
-  @DecimalMin(value = "0.01", inclusive = true,
-      message = "El límite de crédito debe ser mayor a 0.")
-  private BigDecimal creditLimit;
+  @NotBlank(message = "Type is mandatory")
+  @Pattern(regexp = "^CREDIT$", message = "Type must be 'CREDIT'")
+  private String type; // "CREDIT"
 
-  @DecimalMin(value = "0.0", inclusive = true,
-      message = "El límite disponible debe ser mayor o igual a 0.") // Límite disponible, opcional
-  private BigDecimal availableLimit;
+  @NotNull(message = "Card type is mandatory")
+  private CardType cardType; // "PERSONAL" o "ENTERPRISE"
 
-  @DecimalMin(value = "0.0", inclusive = true,
-      message = "El balance inicial debe ser mayor o igual a 0.") // Balance inicial de la tarjeta
-  @Digits(integer = 18, fraction = 2,
-      message = "El balance debe tener como máximo 18 dígitos enteros y 2 decimales.")
-  private BigDecimal balance;
+  @NotNull(message = "Credit limit is mandatory")
+  @DecimalMin(value = "0.0", inclusive = false, message = "Credit limit must be greater than zero")
+  private BigDecimal creditLimit; // Límite de crédito
 
-  @FutureOrPresent(message = "La fecha de corte debe ser una fecha futura o actual.") // Fecha de corte
-  private LocalDate cutoffDate;
+  @NotNull(message = "Balance is mandatory")
+  @DecimalMin(value = "0.0", inclusive = true, message = "Balance must be non-negative")
+  private BigDecimal balance; // Saldo
+
+  @NotNull(message = "Cutoff date is mandatory")
+  private LocalDate cutoffDate; // Fecha de corte
+
+  @NotNull(message = "Status is mandatory")
+  private RecordStatus status; // Estado (ACTIVE, BLOCKED, etc.)
 }
+

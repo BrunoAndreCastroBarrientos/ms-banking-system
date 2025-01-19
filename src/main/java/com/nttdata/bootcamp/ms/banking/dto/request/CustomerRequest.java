@@ -2,8 +2,12 @@ package com.nttdata.bootcamp.ms.banking.dto.request;
 
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CustomerProfile;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CustomerType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.IdentificationType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 /**
  * Request DTO para crear o actualizar un cliente.
@@ -18,31 +22,42 @@ import lombok.*;
 @AllArgsConstructor
 public class CustomerRequest {
 
-  @NotNull(message = "El tipo de cliente no puede ser nulo.") // Ejemplo: PERSONAL o ENTERPRISE
-  private CustomerType customerType;
+  @NotNull(message = "Customer type is mandatory")
+  private CustomerType customerType; // Tipo de cliente (PERSONAL/ENTERPRISE)
 
-  @NotNull(message = "El sub-tipo de cliente no puede ser nulo.") // Ejemplo: STANDARD, VIP, PYME
-  private CustomerProfile subType;
+  @NotNull(message = "SubType is mandatory")
+  private CustomerProfile subType; // Subtipo de cliente (STANDARD, VIP, PYME)
 
-  @Size(max = 100, message = "El nombre no debe superar los 100 caracteres.") // Nombre del cliente (para PERSONAL)
-  @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]*$",
-      message = "El nombre solo puede contener letras y espacios.")
-  private String firstName;
+  // Solo aplica a Personal
+  @Pattern(regexp = "^[A-Za-z]{1,50}$", message = "First name must contain only letters and up to 50 characters")
+  private String firstName; // Nombre del cliente (solo aplica a Personal)
 
-  @Size(max = 100, message = "El apellido no debe superar los 100 caracteres.") // Apellido del cliente (para PERSONAL)
-  @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]*$",
-      message = "El apellido solo puede contener letras y espacios.")
-  private String lastName;
+  @Pattern(regexp = "^[A-Za-z]{1,50}$", message = "Last name must contain only letters and up to 50 characters")
+  private String lastName; // Apellidos del cliente (solo aplica a Personal)
 
-  @Size(max = 150, message = "El nombre comercial no debe superar los 150 caracteres.") // Nombre comercial (para ENTERPRISE)
-  private String businessName;
+  // Solo aplica a Empresarial
+  @Pattern(regexp = "^[A-Za-z0-9 ]{1,100}$", message = "Business name must be alphanumeric and up to 100 characters")
+  private String businessName; // Razón social (solo aplica a Empresarial)
 
-  @Pattern(regexp = "\\d{11}",
-      message = "El RUC debe contener exactamente 11 dígitos.") // Registro Único de Contribuyente (solo para ENTERPRISE)
-  private String ruc;
+  @NotBlank(message = "Identification number is mandatory")
+  @Pattern(regexp = "^[A-Za-z0-9]{6,20}$", message = "Identification number must be alphanumeric and between 6 to 20 characters")
+  private String identificationNumber; // Numero de identificación
 
-  @Size(max = 250, message = "La información de contacto no debe superar los 250 caracteres.") // Información de contacto
-  @Email(message = "El formato del correo electrónico es inválido.") // Ejemplo: contacto@empresa.com
-  private String contactInfo;
+  @NotNull(message = "Identification type is mandatory")
+  private IdentificationType identificationType; // DNI, CEX, PASSPORT
+
+  @NotBlank(message = "Email is mandatory")
+  @Email(message = "Email should be valid")
+  private String email; // Información de contacto (email)
+
+  @NotBlank(message = "Phone number is mandatory")
+  @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Phone number must be between 7 to 15 digits and may start with +")
+  private String phoneNumber; // Información de contacto (teléfono)
+
+  @NotNull(message = "Creation date is mandatory")
+  private LocalDateTime creationDate; // Fecha de alta del cliente
+
+  @NotNull(message = "Status is mandatory")
+  private RecordStatus status; // Estado del cliente (ACTIVE, INACTIVE)
 }
 

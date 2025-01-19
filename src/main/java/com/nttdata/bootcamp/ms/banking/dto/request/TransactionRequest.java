@@ -3,6 +3,8 @@ package com.nttdata.bootcamp.ms.banking.dto.request;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.TransactionType;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,35 +20,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TransactionRequest {
 
-  @NotBlank(message = "El tipo de transacción no puede estar vacío.") // Tipo de transacción
-  @Pattern(regexp = "DEPOSIT|WITHDRAWAL|TRANSFER|CREDIT_PAYMENT|CREDIT_CARD_PAYMENT",
-      message = "El tipo de transacción debe ser uno de los siguientes: DEPOSIT, WITHDRAWAL, TRANSFER, CREDIT_PAYMENT, CREDIT_CARD_PAYMENT.")
-  private TransactionType transactionType;
+  @NotNull(message = "Transaction type is mandatory")
+  private TransactionType transactionType; // Tipo de transacción (DEPOSIT, WITHDRAWAL, TRANSFER, CREDIT_PAYMENT,CREDIT_CARD_PAYMENT.)
 
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID de la cuenta de origen debe ser un UUID válido.") // ID de la cuenta de origen
-  private String originAccountId;
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Origin Account ID must be a 24-character alphanumeric string")
+  private String originAccountId; // Cuenta de origen (puede ser null)
 
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID de la cuenta de destino debe ser un UUID válido.") // ID de la cuenta de destino
-  private String destinationAccountId;
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Destination Account ID must be a 24-character alphanumeric string")
+  private String destinationAccountId; // Cuenta de destino (puede ser null)
 
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID del crédito debe ser un UUID válido.") // ID del crédito (si aplica)
-  private String creditId;
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Credit ID must be a 24-character alphanumeric string")
+  private String creditId; // Crédito al que se aplica el pago (si corresponde)
 
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID de la tarjeta de crédito debe ser un UUID válido.") // ID de la tarjeta de crédito (si aplica)
-  private String creditCardId;
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Credit Card ID must be a 24-character alphanumeric string")
+  private String creditCardId; // Tarjeta de crédito a la que se aplica el pago (si corresponde)
 
-  @Pattern(regexp = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-      message = "El ID de la tarjeta de débito debe ser un UUID válido.") // ID de la tarjeta de débito (si aplica)
-  private String debitCardId;
+  @Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Debit Card ID must be a 24-character alphanumeric string")
+  private String debitCardId; // Opcional, si deseas guardar la tarjeta de débito
 
-  @NotNull(message = "El monto de la transacción no puede ser nulo.") // Monto de la transacción
-  @DecimalMin(value = "0.01", inclusive = true,
-      message = "El monto de la transacción debe ser mayor a 0.")
-  @Digits(integer = 18, fraction = 2,
-      message = "El monto de la transacción debe tener como máximo 18 dígitos enteros y 2 decimales.")
-  private BigDecimal amount;
+  @NotNull(message = "Amount is mandatory")
+  @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than zero")
+  private BigDecimal amount; // Monto de la transacción
+
+  @NotNull(message = "Transaction date is mandatory")
+  private LocalDateTime transactionDate; // Fecha y hora de la transacción
 }

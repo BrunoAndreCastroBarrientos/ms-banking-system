@@ -13,6 +13,9 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -36,111 +39,43 @@ public class CustomerServiceImpl implements CustomerService {
 
   private final CustomerRepository customerRepository;
   private final CustomerMapper customerMapper;
-  private final WebClient webClient;
 
-  @Value("${service.accounts.url}")
-  private String accountsServiceUrl;
-
-  @Value("${service.credits.url}")
-  private String creditsServiceUrl;
-
-  @Value("${service.creditcards.url}")
-  private String creditCardsServiceUrl;
-
-  @Override
   public Mono<CustomerResponse> createCustomer(CustomerRequest request) {
     Customer customer = customerMapper.toEntity(request);
-    return validateProfileRules(customer)
-        .then(customerRepository.save(customer))
+    return customerRepository.save(customer)
         .map(customerMapper::toResponse);
   }
 
-  @Override
+  public Flux<CustomerResponse> getAllCustomer() {
+    return customerRepository.findAll()
+        .map(customerMapper::toResponse);
+  }
+
+  public Mono<CustomerResponse> getCustomerById(String id) {
+    return customerRepository.findById(id)
+                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+.map(customerMapper::toResponse);
+  }
+
   public Mono<CustomerResponse> updateCustomer(String id, CustomerRequest request) {
     return customerRepository.findById(id)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Customer not found: " + id)))
+        .switchIfEmpty(Mono.error(new ApiValidateException("Customer not found.")))
         .flatMap(existing -> {
-          existing.setCustomerType(request.getCustomerType());
-          existing.setSubType(request.getSubType());
-          existing.setContactInfo(request.getContactInfo());
-          if (request.getCustomerType() == CustomerType.PERSONAL) {
-            existing.setFirstName(request.getFirstName());
-            existing.setLastName(request.getLastName());
-            existing.setBusinessName(null);
-            existing.setRuc(null);
-          } else {
-            existing.setBusinessName(request.getBusinessName());
-            existing.setRuc(request.getRuc());
-            existing.setFirstName(null);
-            existing.setLastName(null);
-          }
-          return validateProfileRules(existing)
-              .then(customerRepository.save(existing));
+          Customer updated = customerMapper.toEntity(request);
+          updated.setId(existing.getId());
+          return customerRepository.save(updated);
         })
         .map(customerMapper::toResponse);
   }
 
-  @Override
-  public Mono<CustomerResponse> changeStatus(String id, String newStatus) {
-    return customerRepository.findById(id)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Customer not found")))
-        .flatMap(customer -> {
-          customer.setStatus(RecordStatus.valueOf(newStatus));
-          return customerRepository.save(customer);
-        })
-        .map(customerMapper::toResponse);
-  }
-
-  @Override
-  public Mono<CustomerResponse> getById(String id) {
-    return customerRepository.findById(id)
-        .map(customerMapper::toResponse);
-  }
-
-  //@Cacheable(cacheNames = "customers")
-  @Override
-  @CircuitBreaker(name = "customerServiceCircuitBreaker", fallbackMethod = "fallbackGetAll")
-  public Flux<CustomerResponse> getAll() {
-    return customerRepository.findAll()
-        .map(customerMapper::toResponse);
-  }
-
-  private Flux<CustomerResponse> fallbackGetAll(Throwable ex) {
-    System.out.println("ENTRO AL CIRCUITO BREAKER");
-    return Flux.just(
-        new CustomerResponse()
-    );
-  }
-
-  @Override
-  @CircuitBreaker(name = "customerServiceCircuitBreaker", fallbackMethod = "fallbackGetAll")
-  public Flux<CustomerResponse> findByType(String customerType) {
-    return customerRepository.findAll()
-        .filter(c -> c.getCustomerType().name().equalsIgnoreCase(customerType))
-        .map(customerMapper::toResponse);
-  }
-
-  @Override
-  public Flux<CustomerResponse> findByStatus(String status) {
-    return customerRepository.findAll()
-        .filter(c -> c.getStatus().name().equalsIgnoreCase(status))
-        .map(customerMapper::toResponse);
-  }
-
-  private Mono<Void> validateProfileRules(Customer customer) {
-    if (customer.getCustomerType() == CustomerType.PERSONAL
-        && "VIP".equalsIgnoreCase(customer.getSubType().name())) {
-      return webClient.get()
-          .uri(creditCardsServiceUrl + "/customer/" + customer.getId())
-          .retrieve()
-          .bodyToFlux(String.class)
-          .switchIfEmpty(Mono.error(new ApiValidateException("No active credit cards found for VIP requirement")))
-          .then();
-    }
-    if (customer.getCustomerType() == CustomerType.ENTERPRISE
-        && "STANDARD".equalsIgnoreCase(customer.getSubType().name())) {
-      return Mono.empty();
-    }
-    return Mono.empty();
+  public Mono<Void> deleteCustomer(String id) {
+    customerRepository.findById(id)
+        .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+        .flatMap(existing -> {
+          existing.setStatus(RecordStatus.INACTIVE);
+          customerRepository.save(existing);
+          return null;
+        });
+    return null;
   }
 }

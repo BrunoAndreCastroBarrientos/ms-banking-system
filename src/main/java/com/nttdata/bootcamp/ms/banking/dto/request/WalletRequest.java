@@ -21,8 +21,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WalletRequest {
-  private String documentId;
-  private String phoneNumber;
-  private String imei;
-  private String email;
+
+  @NotBlank(message = "Identification number is mandatory")
+  @Pattern(regexp = "^[A-Za-z0-9]{6,20}$", message = "Identification number must be alphanumeric and between 6 to 20 characters")
+  private String identificationNumber; // Número de identificación
+
+  @NotBlank(message = "Phone number is mandatory")
+  @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Phone number must be between 7 to 15 digits and may start with +")
+  private String phoneNumber; // Número de teléfono
+
+  @NotBlank(message = "Email is mandatory")
+  @Email(message = "Email should be valid")
+  private String email; // Correo electrónico
+
+  @NotNull(message = "Balance is mandatory")
+  @DecimalMin(value = "0.0", inclusive = true, message = "Balance must be non-negative")
+  private BigDecimal balance; // Saldo
 }

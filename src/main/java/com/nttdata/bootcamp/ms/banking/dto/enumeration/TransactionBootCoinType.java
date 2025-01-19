@@ -6,7 +6,7 @@ package com.nttdata.bootcamp.ms.banking.dto.enumeration;
  * @author Bruno Andre Castro Barrientos
  * @version 1.0
  */
-public enum RecordStatus {
-  ACTIVE,     // Activo
-  INACTIVE   // Inactivo
+public enum TransactionBootCoinType {
+  BUY,            // Comprar
+  SELL         // Vender
 }

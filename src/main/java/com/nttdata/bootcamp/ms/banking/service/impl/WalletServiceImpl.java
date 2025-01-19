@@ -1,15 +1,21 @@
 package com.nttdata.bootcamp.ms.banking.service.impl;
 
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.TransactionBootCoinType;
+import com.nttdata.bootcamp.ms.banking.dto.request.BootCoinRequest;
 import com.nttdata.bootcamp.ms.banking.dto.request.CreditCardRequest;
 import com.nttdata.bootcamp.ms.banking.dto.request.WalletRequest;
+import com.nttdata.bootcamp.ms.banking.dto.response.BootCoinResponse;
 import com.nttdata.bootcamp.ms.banking.dto.response.CreditCardResponse;
 import com.nttdata.bootcamp.ms.banking.dto.response.WalletResponse;
+import com.nttdata.bootcamp.ms.banking.entity.BootCoinTransaction;
 import com.nttdata.bootcamp.ms.banking.entity.CreditCard;
 import com.nttdata.bootcamp.ms.banking.entity.Wallet;
 import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
+import com.nttdata.bootcamp.ms.banking.mapper.BootCoinMapper;
 import com.nttdata.bootcamp.ms.banking.mapper.CreditCardMapper;
 import com.nttdata.bootcamp.ms.banking.mapper.WalletMapper;
+import com.nttdata.bootcamp.ms.banking.repository.BootCoinRepository;
 import com.nttdata.bootcamp.ms.banking.repository.CreditCardRepository;
 import com.nttdata.bootcamp.ms.banking.repository.WalletRepository;
 import com.nttdata.bootcamp.ms.banking.service.CreditCardService;
@@ -22,6 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 
 /**
@@ -44,56 +51,90 @@ import java.math.BigDecimal;
 public class WalletServiceImpl implements WalletService {
 
   private final WalletRepository walletRepository;
-  //private final CreditCardMapper creditCardMapper;
-  //private final WebClient webClient;
+  private final WalletMapper walletMapper;
+  private final BootCoinRepository bootCoinRepository;
 
-  @Value("${service.credit.url}")
-  private String creditsServiceUrl;
+  public Mono<WalletResponse> sendPayment(WalletRequest request, BigDecimal amount) {
+    return walletRepository.findByPhoneNumber(request.getPhoneNumber())
+        .flatMap(senderWallet -> {
+          BigDecimal senderBalance = senderWallet.getBalance();
 
+          if (senderBalance.compareTo(amount) < 0) {
+            return Mono.error(new ApiValidateException("Insufficient funds"));
+          }
 
-  @Override
-  public Mono<WalletResponse> createWallet(WalletRequest request) {
-    Wallet wallet = WalletMapper.toEntity(request);
-    wallet.setBalance(0.0);
-    return walletRepository.save(wallet).map(WalletMapper::toResponse);
+          senderWallet.setBalance(senderBalance.subtract(amount));
+          return walletRepository.save(senderWallet);
+        })
+        .then(walletRepository.findByPhoneNumber(request.getPhoneNumber())
+            .flatMap(recipientWallet -> {
+              BigDecimal recipientBalance = recipientWallet.getBalance();
+              recipientWallet.setBalance(recipientBalance.add(amount));
+              return walletRepository.save(recipientWallet);
+            })
+        )
+        .map(walletMapper::toResponse);
   }
 
-  @Override
-  public Mono<WalletResponse> getWalletByPhoneNumber(String phoneNumber) {
-    return walletRepository.findByPhoneNumber(phoneNumber)
-        .switchIfEmpty(Mono.error(new RuntimeException("Wallet not found")))
-        .map(WalletMapper::toResponse);
-  }
-
-  @Override
-  public Mono<WalletResponse> associateDebitCard(String phoneNumber, String debitCardNumber) {
-    return walletRepository.findByPhoneNumber(phoneNumber)
-        .switchIfEmpty(Mono.error(new RuntimeException("Wallet not found")))
+  public Mono<WalletResponse> receivePayment(WalletRequest request, BigDecimal amount) {
+    return walletRepository.findByPhoneNumber(request.getPhoneNumber())
         .flatMap(wallet -> {
-          // Simulate debit card association logic
-          // Assuming debitCardNumber is valid and belongs to the user
+          BigDecimal currentBalance = wallet.getBalance();
+          wallet.setBalance(currentBalance.add(amount));
           return walletRepository.save(wallet);
         })
-        .map(WalletMapper::toResponse);
+        .map(walletMapper::toResponse);
   }
 
-  @Override
-  public Mono<WalletResponse> sendPayment(String fromPhoneNumber, String toPhoneNumber, Double amount) {
-    return walletRepository.findByPhoneNumber(fromPhoneNumber)
-        .switchIfEmpty(Mono.error(new RuntimeException("Sender wallet not found")))
-        .flatMap(fromWallet -> walletRepository.findByPhoneNumber(toPhoneNumber)
-            .switchIfEmpty(Mono.error(new RuntimeException("Recipient wallet not found")))
-            .flatMap(toWallet -> {
-              if (fromWallet.getBalance() < amount) {
-                return Mono.error(new RuntimeException("Insufficient balance"));
-              }
-              fromWallet.setBalance(fromWallet.getBalance() - amount);
-              toWallet.setBalance(toWallet.getBalance() + amount);
-
-              return walletRepository.save(fromWallet)
-                  .then(walletRepository.save(toWallet))
-                  .then(Mono.just(WalletMapper.toResponse(fromWallet)));
-            })
-        );
+  public Mono<WalletResponse> getWalletDetails(String phoneNumber) {
+    return walletRepository.findByPhoneNumber(phoneNumber)
+        .map(walletMapper::toResponse);
   }
+
+  public Mono<BootCoinResponse> buyBootCoin(BootCoinRequest request, BigDecimal amount) {
+    return walletRepository.findByPhoneNumber(request.getPhoneNumber())
+        .flatMap(wallet -> {
+          BigDecimal walletBalance = wallet.getBalance();
+
+          if (walletBalance.compareTo(amount) < 0) {
+            return Mono.error(new ApiValidateException("Insufficient funds"));
+          }
+
+          wallet.setBalance(walletBalance.subtract(amount));
+          return walletRepository.save(wallet)
+              .then(bootCoinRepository.save(
+                  BootCoinTransaction.builder()
+                      .phoneNumber(request.getPhoneNumber())
+                      .amount(request.getAmount())
+                      .transactionBootCoinType(TransactionBootCoinType.BUY)
+                      .transactionDate(LocalDateTime.now())
+                      .build()              ));
+        })
+        .map(BootCoinMapper::toResponse);
+  }
+
+  public Mono<BootCoinResponse> sellBootCoin(BootCoinRequest request, BigDecimal amount) {
+    return bootCoinRepository.findUserBootCoinBalance(request.getPhoneNumber())
+        .flatMap(balance -> {
+          if (balance.compareTo(amount) < 0) {
+            return Mono.error(new ApiValidateException("Insufficient BootCoin balance"));
+          }
+
+          return walletRepository.findByPhoneNumber(request.getPhoneNumber())
+              .flatMap(wallet -> {
+                BigDecimal walletBalance = wallet.getBalance();
+                wallet.setBalance(walletBalance.add(amount));
+                return walletRepository.save(wallet)
+                    .then(bootCoinRepository.save(
+                        BootCoinTransaction.builder()
+                            .phoneNumber(request.getPhoneNumber())
+                            .amount(request.getAmount())
+                            .transactionBootCoinType(TransactionBootCoinType.SELL)
+                            .transactionDate(LocalDateTime.now())
+                            .build()              ));
+              });
+        })
+        .map(BootCoinMapper::toResponse);
+  }
+
 }

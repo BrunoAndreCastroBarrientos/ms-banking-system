@@ -11,10 +11,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface WalletService {
-  Mono<WalletResponse> createWallet(WalletRequest request);
-  Mono<WalletResponse> getWalletByPhoneNumber(String phoneNumber);
-  Mono<WalletResponse> associateDebitCard(String phoneNumber, String debitCardNumber);
-  Mono<WalletResponse> sendPayment(String fromPhoneNumber, String toPhoneNumber, Double amount);
+  Mono<WalletResponse> sendPayment(WalletRequest request, BigDecimal amount);
+  Mono<WalletResponse> receivePayment(WalletRequest request, BigDecimal amount);
+  Mono<WalletResponse> getWalletDetails(String phoneNumber);
 }
 
 

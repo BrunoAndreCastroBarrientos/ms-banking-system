@@ -1,23 +1,18 @@
 package com.nttdata.bootcamp.ms.banking.controller;
 
-import com.nttdata.bootcamp.ms.banking.dto.request.TransactionRequest;
-import com.nttdata.bootcamp.ms.banking.dto.response.ConsolidatedResponse;
+import com.nttdata.bootcamp.ms.banking.dto.response.AverageBalanceResponse;
+import com.nttdata.bootcamp.ms.banking.dto.response.CardTransactionResponse;
+import com.nttdata.bootcamp.ms.banking.dto.response.ClientSummaryResponse;
 import com.nttdata.bootcamp.ms.banking.dto.response.TransactionResponse;
-import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.service.ReportService;
-import com.nttdata.bootcamp.ms.banking.service.TransactionService;
-import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -34,24 +29,22 @@ public class ReportController {
 
   private final ReportService reportService;
 
-
-  @GetMapping("/customer/{id}/summary")
-  public Mono<ConsolidatedResponse> getCustomerSummary(@PathVariable String id) {
-    return reportService.getCustomerSummary(id);
+  @GetMapping("/average-balance")
+  public Flux<AverageBalanceResponse> generateAverageBalanceReport(
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+    return reportService.generateAverageBalanceReport(startDate, endDate);
   }
 
-  @GetMapping("/customer/{id}/average-balance")
-  public Mono<BigDecimal> getAverageAccountBalance(@PathVariable String id) {
-    return reportService.getAverageAccountBalance(id);
+  // Generar resumen del cliente
+  @GetMapping("/client-summary/{clientId}")
+  public Mono<ClientSummaryResponse> generateClientSummary(@PathVariable String clientId) {
+    return reportService.generateClientSummary(clientId);
   }
 
-  @GetMapping("/accounts/{accountId}/transactions")
-  public Mono<List<TransactionResponse>> getAccountTransactions(@PathVariable String accountId) {
-    return reportService.getAccountTransactions(accountId);
-  }
-
-  @GetMapping("/cards/{cardId}/last10")
-  public Mono<List<TransactionResponse>> getCardLast10Transactions(@PathVariable String cardId) {
-    return reportService.getCardLast10Transactions(cardId);
+  // Obtener las últimas 10 transacciones de una tarjeta
+  @GetMapping("/card-transactions/{cardId}/last-10")
+  public Mono<CardTransactionResponse> getLast10CardTransactions(@PathVariable String cardId) {
+    return reportService.getLast10CardTransactions(cardId);
   }
 }

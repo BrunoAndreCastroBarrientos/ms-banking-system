@@ -1,6 +1,7 @@
 package com.nttdata.bootcamp.ms.banking.dto.response;
 
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.CardType;
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,12 +21,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DebitCardResponse {
-  private String id;
-  private String customerId;
-  private CardType cardType;
-  private List<String> associatedAccounts;
-  private String primaryAccount;
-  private String status; // ACTIVE, BLOCKED, etc.
-
+  private String id; // Identificador único de la tarjeta de débito
+  private String customerId; // ID del cliente
+  private String type; // "DEBIT"
+  private CardType cardType; // "PERSONAL" o "ENTERPRISE" (opcional si aplica)
+  private List<String> associatedAccounts; // IDs de cuentas bancarias del cliente
+  private RecordStatus status; // ACTIVE, BLOCKED, etc.
 }
 

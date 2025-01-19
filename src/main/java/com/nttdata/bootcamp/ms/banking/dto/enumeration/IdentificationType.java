@@ -1,18 +1,16 @@
 package com.nttdata.bootcamp.ms.banking.dto.enumeration;
 
 /**
- * Estados posibles para los créditos
+ * Tipos de clientes del banco
  *
  * @author Bruno Andre Castro Barrientos
  * @version 1.0
  */
-public enum CreditStatus {
-  PERSONAL,
-  ENTERPRISE
+public enum IdentificationType {
+  DNI,
+  CEX,
+  PASSPORT
 }
-
-
-
 
 
 

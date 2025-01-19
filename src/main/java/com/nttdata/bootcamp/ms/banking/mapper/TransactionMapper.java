@@ -11,33 +11,30 @@ import java.time.LocalDateTime;
 @Component
 public class TransactionMapper {
 
-  public static Transaction toEntity(TransactionRequest request) {
-    Transaction tx = new Transaction();
-    tx.setTransactionType(request.getTransactionType());
-    tx.setOriginAccountId(request.getOriginAccountId());
-    tx.setDestinationAccountId(request.getDestinationAccountId());
-    tx.setCreditId(request.getCreditId());
-    tx.setCreditCardId(request.getCreditCardId());
-    tx.setDebitCardId(request.getDebitCardId());
-    tx.setAmount(request.getAmount());
-    tx.setTransactionDate(LocalDateTime.now());
-    // Por defecto, sin comisión o se calculan en el service
-    tx.setCommission(BigDecimal.ZERO);
-    return tx;
+  public Transaction toEntity(TransactionRequest request) {
+    Transaction transaction = new Transaction();
+    transaction.setTransactionType(request.getTransactionType());
+    transaction.setOriginAccountId(request.getOriginAccountId());
+    transaction.setDestinationAccountId(request.getDestinationAccountId());
+    transaction.setCreditId(request.getCreditId());
+    transaction.setCreditCardId(request.getCreditCardId());
+    transaction.setDebitCardId(request.getDebitCardId());
+    transaction.setAmount(request.getAmount());
+    transaction.setTransactionDate(request.getTransactionDate());
+    return transaction;
   }
 
-  public static TransactionResponse toResponse(Transaction tx) {
-    TransactionResponse resp = new TransactionResponse();
-    resp.setId(tx.getId());
-    resp.setTransactionType(tx.getTransactionType().name());
-    resp.setOriginAccountId(tx.getOriginAccountId());
-    resp.setDestinationAccountId(tx.getDestinationAccountId());
-    resp.setCreditId(tx.getCreditId());
-    resp.setCreditCardId(tx.getCreditCardId());
-    resp.setDebitCardId(tx.getDebitCardId());
-    resp.setAmount(tx.getAmount());
-    resp.setTransactionDate(tx.getTransactionDate());
-    resp.setCommission(tx.getCommission());
-    return resp;
+  public TransactionResponse toResponse(Transaction transaction) {
+    TransactionResponse response = new TransactionResponse();
+    response.setId(transaction.getId());
+    response.setTransactionType(transaction.getTransactionType());
+    response.setOriginAccountId(transaction.getOriginAccountId());
+    response.setDestinationAccountId(transaction.getDestinationAccountId());
+    response.setCreditId(transaction.getCreditId());
+    response.setCreditCardId(transaction.getCreditCardId());
+    response.setDebitCardId(transaction.getDebitCardId());
+    response.setAmount(transaction.getAmount());
+    response.setTransactionDate(transaction.getTransactionDate());
+    return response;
   }
 }

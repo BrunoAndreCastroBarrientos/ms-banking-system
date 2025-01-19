@@ -10,7 +10,9 @@ import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.mapper.AccountMapper;
 import com.nttdata.bootcamp.ms.banking.repository.AccountRepository;
 import com.nttdata.bootcamp.ms.banking.service.AccountService;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,169 +45,79 @@ public class AccountServiceImpl implements AccountService {
 
   private final AccountRepository accountRepository;
   private final AccountMapper accountMapper;
-  private final WebClient webClient;
 
-  @Value("${service.customers.url}")
-  private String customersServiceUrl;
-
-  @Value("${service.credits.url}")
-  private String creditsServiceUrl;
-
-  @Value("${service.creditcards.url}")
-  private String creditCardsServiceUrl;
-
-
-  @Override
   public Mono<AccountResponse> createAccount(AccountRequest request) {
     Account account = accountMapper.toEntity(request);
-    return validateBeforeCreating(account)
-        .then(accountRepository.save(account))
+    return accountRepository.save(account)
         .map(accountMapper::toResponse);
   }
 
-  @Override
-  public Mono<AccountResponse> updateAccount(String accountId, AccountRequest request) {
-    return accountRepository.findById(accountId)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Account not found: " + accountId)))
-        .flatMap(existing -> {
-          existing.setTransactionsAllowed(request.getTransactionsAllowed());
-          existing.setMaintenanceFee(request.getMaintenanceFee());
-          existing.setCutoffDate(request.getCutoffDate());
-          return accountRepository.save(existing);
-        })
-        .map(accountMapper::toResponse);
-  }
-
-  @Override
-  public Mono<Void> closeAccount(String accountId) {
-    return accountRepository.findById(accountId)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Account not found: " + accountId)))
-        .flatMap(account -> {
-          if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
-            return Mono.error(new ApiValidateException("Cannot close account with non-zero balance."));
-          }
-          account.setStatus(RecordStatus.CLOSED);
-          return accountRepository.save(account);
-        })
-        .then();
-  }
-
-  @Override
-  public Mono<AccountResponse> getById(String accountId) {
-    return accountRepository.findById(accountId)
-        .map(accountMapper::toResponse);
-  }
-
-  @Override
-  public Flux<AccountResponse> getByCustomerId(String customerId) {
-    return accountRepository.findByCustomerId(customerId)
-        .map(accountMapper::toResponse);
-  }
-
-  @Override
-  public Flux<AccountResponse> getAll() {
+  public Flux<AccountResponse> getAllAccounts() {
     return accountRepository.findAll()
         .map(accountMapper::toResponse);
   }
 
-  @Override
-  public Mono<BigDecimal> debit(String accountId, BigDecimal amount) {
-    return accountRepository.findById(accountId)
+  public Mono<AccountResponse> getAccountById(String id) {
+    return accountRepository.findById(id)
+        .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+        .map(accountMapper::toResponse);
+  }
+
+  public Mono<AccountResponse> updateAccount(String id, AccountRequest request) {
+    return accountRepository.findById(id)
         .switchIfEmpty(Mono.error(new ApiValidateException("Account not found.")))
-        .flatMap(account -> {
-          if (account.getBalance().compareTo(amount) < 0) {
-            return Mono.error(new ApiValidateException("Insufficient funds."));
-          }
-          account.setBalance(account.getBalance().subtract(amount));
-          return accountRepository.save(account)
-              .map(updatedAccount -> updatedAccount.getBalance());
-        });
-  }
-
-
-  private Mono<Void> validateBeforeCreating(Account account) {
-    return getCustomerTypeAndSubType(account.getCustomerId())
-        .flatMap(tuple -> {
-          String customerType = tuple.getT1();
-          String subType = tuple.getT2();
-
-          if (account.getAccountType() == AccountType.SAVINGS && "ENTERPRISE".equalsIgnoreCase(customerType)) {
-            return Mono.error(new ApiValidateException("Business customers cannot open SAVINGS accounts."));
-          }
-          if (account.getAccountType() == AccountType.TIME_DEPOSIT && "ENTERPRISE".equalsIgnoreCase(customerType)) {
-            return Mono.error(new ApiValidateException("TIME_DEPOSIT accounts are only for personal customers."));
-          }
-          if (account.getAccountType() == AccountType.SAVINGS && "VIP".equalsIgnoreCase(subType)) {
-            return verifyCreditCardExists(account.getCustomerId());
-          }
-          if (account.getAccountType() == AccountType.CHECKING && "PYME".equalsIgnoreCase(subType)) {
-            account.setMaintenanceFee(BigDecimal.ZERO);
-            return verifyEnterpriseCardExists(account.getCustomerId());
-          }
-          return Mono.empty();
+        .flatMap(existing -> {
+          Account updated = accountMapper.toEntity(request);
+          updated.setId(existing.getId());
+          return accountRepository.save(updated);
         })
-        .then(checkDebt(account.getCustomerId()));
+        .map(accountMapper::toResponse);
   }
 
-  private Mono<Tuple2<String, String>> getCustomerTypeAndSubType(String customerId) {
-    return webClient.get()
-        .uri(customersServiceUrl + "/api/customers/" + customerId)
-        .retrieve()
-        .bodyToMono(JsonNode.class)
-        .map(response -> {
-          String customerType = response.path("customerType").asText();
-          String subType = response.path("subType").asText();
-          return Tuples.of(customerType, subType);
+
+  public Mono<Void> deleteAccount(String id) {
+    accountRepository.findById(id)
+        .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+        .flatMap(existing -> {
+          existing.setStatus(RecordStatus.INACTIVE);
+          accountRepository.save(existing);
+          return null;
         });
+    return null;
   }
 
-  private Mono<Void> verifyCreditCardExists(String customerId) {
-    return webClient.get()
-        .uri(creditCardsServiceUrl + "/customer/" + customerId )
-        .retrieve()
-        .bodyToFlux(String.class)
-        .switchIfEmpty(Mono.error(new ApiValidateException("No active credit card found for VIP requirement.")))
-        .then();
+  @Override
+  public Flux<AccountResponse> getAccountsByAccountType(AccountType accountType) {
+    return accountRepository.findByAccountType(accountType)
+        .map(this::convertToAccountResponse);
   }
 
-  private Mono<Void> verifyEnterpriseCardExists(String customerId) {
-    return webClient.get()
-        .uri(creditCardsServiceUrl + "/customer/" + customerId )
-        .retrieve()
-        .bodyToFlux(String.class)
-        .switchIfEmpty(Mono.error(new ApiValidateException("No active enterprise credit card for PYME requirement.")))
-        .then();
+  @Override
+  public Flux<AccountResponse> getAccountsByCustomerId(String customerId) {
+    return accountRepository.findByCustomerId(customerId)
+        .map(this::convertToAccountResponse);
   }
 
-  private Mono<Void> checkDebt(String customerId) {
-    return webClient.get()
-        .uri(creditsServiceUrl + "/credits/debts/pending/" + customerId)
-        .retrieve()
-        .bodyToMono(Boolean.class)
-        .flatMap(hasDebt -> {
-          if (Boolean.TRUE.equals(hasDebt)) {
-            return Mono.error(new ApiValidateException("Customer has an overdue debt. Cannot open account."));
-          }
-          return Mono.empty();
-        });
+  @Override
+  public Flux<AccountResponse> getAccountsByBalanceGreaterThan(BigDecimal balance) {
+    return accountRepository.findByBalanceGreaterThan(balance)
+        .map(this::convertToAccountResponse);
   }
 
-  public List<Object> getCountries() throws Exception {
-    try {
-      // Usamos WebClient para hacer la solicitud a la API de países usando la URL completa
-      Object[] countries = webClient.get()
-          .uri("https://restcountries.com/v3.1/all")  // URL completa para obtener todos los países
-          .retrieve()
-          .bodyToMono(Object[].class)
-          .block();  // Usamos .block() para esperar la respuesta sincrónicamente
-
-      // Retornamos una sublista (de índice 1 a 10)
-      return List.of(countries).stream().skip(1).limit(9).collect(Collectors.toList());
-    } catch (Exception e) {
-      throw new Exception("Failed to fetch countries from the API", e);
-    }
+  @Override
+  public Flux<AccountResponse> getAccountsByOpeningDateBetween(LocalDateTime   startDate, LocalDateTime endDate) {
+    return accountRepository.findByOpenDateBetween(startDate, endDate)
+        .map(this::convertToAccountResponse);
   }
 
+  @Override
+  public Flux<AccountResponse> getAccountsByStatus(RecordStatus status) {
+    return accountRepository.findByStatus(status)
+        .map(this::convertToAccountResponse);
+  }
 
+  private AccountResponse convertToAccountResponse(Account account) {
+    return new AccountResponse(account.getId(), account.getCustomerId(), account.getAccountType(), account.getBalance(), account.getCurrency(), account.getOpenDate(), account.getStatus());
+  }
 
 }
