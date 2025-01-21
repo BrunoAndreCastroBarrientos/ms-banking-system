@@ -14,6 +14,7 @@ import com.nttdata.bootcamp.ms.banking.repository.TransactionRepository;
 import com.nttdata.bootcamp.ms.banking.service.KafkaService;
 import com.nttdata.bootcamp.ms.banking.service.TransactionService;
 import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -48,6 +49,7 @@ public class TransactionServiceImpl implements TransactionService {
   private final KafkaService kafkaService;
 
   @Override
+  @CircuitBreaker(name = "handleTransactionService", fallbackMethod = "handleTransactionFallback")
   public Mono<TransactionResponse> processTransaction(TransactionRequest request) {
     switch (request.getTransactionType()) {
       case DEPOSIT:
@@ -61,7 +63,7 @@ public class TransactionServiceImpl implements TransactionService {
       case CREDIT_CARD_PAYMENT:
         return handleCreditCardPayment(request);
       default:
-        return Mono.error(new IllegalArgumentException("Unsupported transaction type"));
+        return Mono.error(new ApiValidateException("Unsupported transaction type"));
     }
   }
 
@@ -84,8 +86,11 @@ public class TransactionServiceImpl implements TransactionService {
         })
         .map(transactionMapper::toResponse);
   }
+  private Mono<TransactionResponse> handleTransactionFallback(TransactionRequest request, Throwable ex) {
+    return Mono.just(new TransactionResponse());
+  }
 
-
+  @CircuitBreaker(name = "handleWithdrawalService", fallbackMethod = "handleWithdrawalFallback")
   public Mono<TransactionResponse> handleWithdrawal(TransactionRequest request) {
     return accountRepository.findById(request.getOriginAccountId())
         .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))

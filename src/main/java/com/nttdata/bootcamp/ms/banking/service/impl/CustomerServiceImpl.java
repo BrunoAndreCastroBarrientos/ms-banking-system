@@ -48,9 +48,18 @@ public class CustomerServiceImpl implements CustomerService {
         .map(customerMapper::toResponse);
   }
 
+  @CircuitBreaker(name = "customerServiceCircuitBreaker", fallbackMethod = "fallbackGetAll")
   public Flux<CustomerResponse> getAllCustomer() {
+    if(true){throw new ApiValidateException("ERROR APROPOSITO");}
     return customerRepository.findAll()
         .map(customerMapper::toResponse);
+  }
+
+  private Flux<CustomerResponse> fallbackGetAll(Throwable ex) {
+    System.out.println("ENTRO AL CIRCUITO BREAKER");
+    return Flux.just(
+        new CustomerResponse()
+    );
   }
 
   @Cacheable(value = "customer", key = "#id")

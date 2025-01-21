@@ -8,6 +8,7 @@ import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -30,12 +31,24 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
+@Tag(name = "Transaction Controller", description = "Endpoints for managing transactions")
 public class TransactionController {
 
   private final TransactionService transactionService;
 
+  /**
+   * Endpoint to process a transaction.
+   *
+   * @param request the transaction request details
+   * @return the response containing the transaction details
+   */
+  @Operation(summary = "Process Transaction",
+      description = "Processes a transaction based on the provided details.")
+  @ApiResponse(responseCode = ConstantUtil.OK_CODE, description = ConstantUtil.OK_MESSAGE)
+  @ApiResponse(responseCode = ConstantUtil.ERROR_CODE, description = ConstantUtil.ERROR_MESSAGE)
   @PostMapping("/process")
   public Mono<TransactionResponse> processTransaction(@Valid @RequestBody TransactionRequest request) {
     return transactionService.processTransaction(request);
   }
 }
+
