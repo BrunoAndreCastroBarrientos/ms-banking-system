@@ -26,6 +26,7 @@ public class Credit {
   private String customerId;              // ID del cliente titular del crédito
   private CreditType creditType;          // Tipo de crédito (PERSONAL, ENTERPRISE)
   private BigDecimal amount;              // Monto principal del crédito
+  private BigDecimal debt;                // Deuda pendiente (este es el saldo actual después de pagos)
   private BigDecimal interestRate;        // Tasa de interés aplicada
   private LocalDate dueDate;              // Fecha de vencimiento
   private RecordStatus status;            // Estado del crédito (ACTIVE, CANCELLED, etc.)

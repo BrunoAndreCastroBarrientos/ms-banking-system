@@ -12,10 +12,11 @@ public class DebitCardMapper {
   public DebitCard toEntity(DebitCardRequest request) {
     DebitCard debitCard = new DebitCard();
     debitCard.setCustomerId(request.getCustomerId());
+    debitCard.setCustomerId(request.getCustomerId());
     debitCard.setType(request.getType());
     debitCard.setCardType(request.getCardType());
     debitCard.setAssociatedAccounts(request.getAssociatedAccounts());
-    debitCard.setStatus(request.getStatus());
+    debitCard.setStatus(RecordStatus.valueOf("ACTIVE"));
     return debitCard;
   }
 

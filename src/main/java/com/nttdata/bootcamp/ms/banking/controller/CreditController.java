@@ -29,7 +29,7 @@ public class CreditController {
   private final CreditService creditService;
 
   @PostMapping
-  public Mono<CreditResponse> createCredit(@RequestBody CreditRequest request) {
+  public Mono<CreditResponse> createCredit(@Valid @RequestBody CreditRequest request) {
     return creditService.createCredit(request);
   }
 
@@ -39,7 +39,7 @@ public class CreditController {
   }
 
   @PutMapping("/{id}")
-  public Mono<CreditResponse> updateCredit(@PathVariable String id, @RequestBody CreditRequest request) {
+  public Mono<CreditResponse> updateCredit(@PathVariable String id, @Valid @RequestBody CreditRequest request) {
     return creditService.updateCredit(id, request);
   }
 

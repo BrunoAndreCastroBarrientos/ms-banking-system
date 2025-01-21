@@ -1,5 +1,6 @@
 package com.nttdata.bootcamp.ms.banking.service.impl;
 
+import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.TransactionType;
 import com.nttdata.bootcamp.ms.banking.entity.Transaction;
 import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
@@ -10,7 +11,9 @@ import com.nttdata.bootcamp.ms.banking.repository.AccountRepository;
 import com.nttdata.bootcamp.ms.banking.repository.CreditCardRepository;
 import com.nttdata.bootcamp.ms.banking.repository.CreditRepository;
 import com.nttdata.bootcamp.ms.banking.repository.TransactionRepository;
+import com.nttdata.bootcamp.ms.banking.service.KafkaService;
 import com.nttdata.bootcamp.ms.banking.service.TransactionService;
+import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,6 +21,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 
 /**
  * Implementación del servicio de transacciones.
@@ -29,8 +33,8 @@ import java.math.BigDecimal;
  * los créditos y las tarjetas, y aplica las comisiones necesarias en base
  * a las transacciones realizadas.</p>
  *
- * @version 1.1
  * @author Bruno Andre Castro Barrientos
+ * @version 1.1
  */
 @Service
 @RequiredArgsConstructor
@@ -41,7 +45,9 @@ public class TransactionServiceImpl implements TransactionService {
   private final CreditRepository creditRepository;
   private final CreditCardRepository creditCardRepository;
   private final TransactionMapper transactionMapper;
+  private final KafkaService kafkaService;
 
+  @Override
   public Mono<TransactionResponse> processTransaction(TransactionRequest request) {
     switch (request.getTransactionType()) {
       case DEPOSIT:
@@ -61,20 +67,30 @@ public class TransactionServiceImpl implements TransactionService {
 
   private Mono<TransactionResponse> handleDeposit(TransactionRequest request) {
     return accountRepository.findById(request.getDestinationAccountId())
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .filter(account -> !account.getStatus().equals(RecordStatus.valueOf("INACTIVE")))
+        .switchIfEmpty(Mono.error(new ApiValidateException("Account inactive.")))
         .flatMap(account -> {
           account.setBalance(account.getBalance().add(request.getAmount()));
           return accountRepository.save(account);
         })
-        .flatMap(account -> {
+        .flatMap(savedAccount -> {
           Transaction transaction = transactionMapper.toEntity(request);
           transaction.setTransactionType(TransactionType.DEPOSIT);
-          return transactionRepository.save(transaction);
+          return transactionRepository.save(transaction)
+              .doOnSuccess(savedTransaction -> {
+                kafkaService.sendMessage("TRANSACTION: " + savedTransaction.toString());
+              });
         })
         .map(transactionMapper::toResponse);
   }
 
-  private Mono<TransactionResponse> handleWithdrawal(TransactionRequest request) {
+
+  public Mono<TransactionResponse> handleWithdrawal(TransactionRequest request) {
     return accountRepository.findById(request.getOriginAccountId())
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .filter(account -> !account.getStatus().equals(RecordStatus.valueOf("INACTIVE")))
+        .switchIfEmpty(Mono.error(new ApiValidateException("Account inactive.")))
         .flatMap(account -> {
           if (account.getBalance().compareTo(request.getAmount()) < 0) {
             return Mono.error(new ApiValidateException("Insufficient funds"));
@@ -85,13 +101,19 @@ public class TransactionServiceImpl implements TransactionService {
         .flatMap(account -> {
           Transaction transaction = transactionMapper.toEntity(request);
           transaction.setTransactionType(TransactionType.WITHDRAWAL);
-          return transactionRepository.save(transaction);
+          return transactionRepository.save(transaction)
+              .doOnSuccess(savedTransaction -> {
+                kafkaService.sendMessage("TRANSACTION: " + savedTransaction.toString());
+              });
         })
         .map(transactionMapper::toResponse);
   }
 
   private Mono<TransactionResponse> handleTransfer(TransactionRequest request) {
     return accountRepository.findById(request.getOriginAccountId())
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .filter(account -> !account.getStatus().equals(RecordStatus.valueOf("INACTIVE")))
+        .switchIfEmpty(Mono.error(new ApiValidateException("Account inactive.")))
         .flatMap(originAccount -> {
           if (originAccount.getBalance().compareTo(request.getAmount()) < 0) {
             return Mono.error(new ApiValidateException("Insufficient funds"));
@@ -100,6 +122,8 @@ public class TransactionServiceImpl implements TransactionService {
           return accountRepository.save(originAccount);
         })
         .then(accountRepository.findById(request.getDestinationAccountId()))
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .filter(account -> !account.getStatus().equals(RecordStatus.valueOf("INACTIVE")))
         .flatMap(destinationAccount -> {
           destinationAccount.setBalance(destinationAccount.getBalance().add(request.getAmount()));
           return accountRepository.save(destinationAccount);
@@ -107,27 +131,39 @@ public class TransactionServiceImpl implements TransactionService {
         .flatMap(destinationAccount -> {
           Transaction transaction = transactionMapper.toEntity(request);
           transaction.setTransactionType(TransactionType.TRANSFER);
-          return transactionRepository.save(transaction);
+          return transactionRepository.save(transaction)
+              .doOnSuccess(savedTransaction -> {
+                kafkaService.sendMessage("TRANSACTION: " + savedTransaction.toString());
+              });
         })
         .map(transactionMapper::toResponse);
   }
 
   private Mono<TransactionResponse> handleCreditPayment(TransactionRequest request) {
     return creditRepository.findById(request.getCreditId())
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .filter(account -> !account.getStatus().equals(RecordStatus.valueOf("INACTIVE")))
+        .switchIfEmpty(Mono.error(new ApiValidateException("Credit inactive.")))
         .flatMap(credit -> {
-          credit.setAmount(credit.getAmount().subtract(request.getAmount()));
+          credit.setDebt(credit.getDebt().subtract(request.getAmount()));
           return creditRepository.save(credit);
         })
         .flatMap(credit -> {
           Transaction transaction = transactionMapper.toEntity(request);
           transaction.setTransactionType(TransactionType.CREDIT_PAYMENT);
-          return transactionRepository.save(transaction);
+          return transactionRepository.save(transaction)
+              .doOnSuccess(savedTransaction -> {
+                kafkaService.sendMessage("TRANSACTION: " + savedTransaction.toString());
+              });
         })
         .map(transactionMapper::toResponse);
   }
 
   private Mono<TransactionResponse> handleCreditCardPayment(TransactionRequest request) {
     return creditCardRepository.findById(request.getCreditCardId())
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .filter(account -> !account.getStatus().equals(RecordStatus.valueOf("INACTIVE")))
+        .switchIfEmpty(Mono.error(new ApiValidateException("CreditCard inactive.")))
         .flatMap(creditCard -> {
           creditCard.setBalance(creditCard.getBalance().subtract(request.getAmount()));
           return creditCardRepository.save(creditCard);
@@ -135,7 +171,10 @@ public class TransactionServiceImpl implements TransactionService {
         .flatMap(creditCard -> {
           Transaction transaction = transactionMapper.toEntity(request);
           transaction.setTransactionType(TransactionType.CREDIT_CARD_PAYMENT);
-          return transactionRepository.save(transaction);
+          return transactionRepository.save(transaction)
+              .doOnSuccess(savedTransaction -> {
+                kafkaService.sendMessage("TRANSACTION: " + savedTransaction.toString());
+              });
         })
         .map(transactionMapper::toResponse);
   }

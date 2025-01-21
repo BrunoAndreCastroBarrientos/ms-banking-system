@@ -1,10 +1,5 @@
 package com.nttdata.bootcamp.ms.banking.dto.request;
 
-import com.nttdata.bootcamp.ms.banking.dto.enumeration.AccountType;
-import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +21,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRequest {
+  @Pattern(regexp = "^[a-zA-Z0-9._-]{3,20}$",
+      message = "El nombre de usuario debe tener entre 3 y 20 caracteres y solo puede contener letras, números, puntos, guiones bajos o guiones.")
   private String username;
+
+  @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,20}$", message = "La contraseña debe tener entre 8 y 20 caracteres, incluir al menos una letra mayúscula, una minúscula, un número y un carácter especial (@#$%^&+=).")
   private String password;
 }

@@ -25,7 +25,7 @@ public class CustomerMapper {
     customer.setEmail(request.getEmail());
     customer.setPhoneNumber(request.getPhoneNumber());
     customer.setCreationDate(request.getCreationDate());
-    customer.setStatus(request.getStatus());
+    customer.setStatus(RecordStatus.valueOf("ACTIVE"));
     return customer;
   }
 

@@ -35,12 +35,12 @@ public class WalletController {
   private final WalletService walletService;
 
   @PostMapping("/send-payment")
-  public Mono<WalletResponse> sendPayment(@RequestBody WalletRequest request, @RequestParam BigDecimal amount) {
+  public Mono<WalletResponse> sendPayment(@Valid @RequestBody WalletRequest request, @RequestParam BigDecimal amount) {
     return walletService.sendPayment(request, amount);
   }
 
   @PostMapping("/receive-payment")
-  public Mono<WalletResponse> receivePayment(@RequestBody WalletRequest request, @RequestParam BigDecimal amount) {
+  public Mono<WalletResponse> receivePayment(@Valid @RequestBody WalletRequest request, @RequestParam BigDecimal amount) {
     return walletService.receivePayment(request, amount);
   }
 

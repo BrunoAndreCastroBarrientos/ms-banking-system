@@ -21,7 +21,7 @@ public class CreditCardMapper {
     creditCard.setCreditLimit(request.getCreditLimit());
     creditCard.setBalance(request.getBalance());
     creditCard.setCutoffDate(request.getCutoffDate());
-    creditCard.setStatus(request.getStatus());
+    creditCard.setStatus(RecordStatus.valueOf("ACTIVE"));
     return creditCard;
   }
 

@@ -41,7 +41,7 @@ public class AccountController {
   private final AccountService accountService;
 
   @PostMapping
-  public Mono<AccountResponse> createAccount(@RequestBody AccountRequest request) {
+  public Mono<AccountResponse> createAccount(@Valid @RequestBody AccountRequest request) {
     return accountService.createAccount(request);
   }
 
@@ -54,38 +54,19 @@ public class AccountController {
   public Mono<AccountResponse> getAccountById(@PathVariable String id) {
     return accountService.getAccountById(id);
   }
+
   @GetMapping("/customer/{customerId}")
   public Flux<AccountResponse> getAccountsByCustomerId(@PathVariable String customerId) {
     return accountService.getAccountsByCustomerId(customerId);
   }
 
   @PutMapping("/{id}")
-  public Mono<AccountResponse> updateAccount(@PathVariable String id, @RequestBody AccountRequest request) {
+  public Mono<AccountResponse> updateAccount(@PathVariable String id, @Valid @RequestBody AccountRequest request) {
     return accountService.updateAccount(id, request);
   }
 
   @DeleteMapping("/{id}")
   public Mono<Void> deleteAccount(@PathVariable String id) {
     return accountService.deleteAccount(id);
-  }
-
-  @GetMapping("/account-type/{accountType}")
-  public Flux<AccountResponse> getAccountsByAccountType(@PathVariable AccountType accountType) {
-    return accountService.getAccountsByAccountType(accountType);
-  }
-
-  @GetMapping("/balance/{balance}")
-  public Flux<AccountResponse> getAccountsByBalance(@PathVariable BigDecimal balance) {
-    return accountService.getAccountsByBalanceGreaterThan(balance);
-  }
-
-  @GetMapping("/opening-date")
-  public Flux<AccountResponse> getAccountsByOpeningDate(@RequestParam LocalDateTime startDate, @RequestParam LocalDateTime endDate) {
-    return accountService.getAccountsByOpeningDateBetween(startDate, endDate);
-  }
-
-  @GetMapping("/status/{status}")
-  public Flux<AccountResponse> getAccountsByStatus(@PathVariable RecordStatus status) {
-    return accountService.getAccountsByStatus(status);
   }
 }

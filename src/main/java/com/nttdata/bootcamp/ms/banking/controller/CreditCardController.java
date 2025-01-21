@@ -33,7 +33,7 @@ public class CreditCardController {
   private final CreditCardService creditCardService;
 
   @PostMapping
-  public Mono<CreditCardResponse> createCreditCard(@RequestBody CreditCardRequest request) {
+  public Mono<CreditCardResponse> createCreditCard(@Valid @RequestBody CreditCardRequest request) {
     return creditCardService.createCreditCard(request);
   }
 
@@ -43,7 +43,7 @@ public class CreditCardController {
   }
 
   @PutMapping("/{id}")
-  public Mono<CreditCardResponse> updateCreditCard(@PathVariable String id, @RequestBody CreditCardRequest request) {
+  public Mono<CreditCardResponse> updateCreditCard(@PathVariable String id, @Valid @RequestBody CreditCardRequest request) {
     return creditCardService.updateCreditCard(id, request);
   }
 

@@ -35,7 +35,7 @@ public class TransactionController {
   private final TransactionService transactionService;
 
   @PostMapping("/process")
-  public Mono<TransactionResponse> processTransaction(@RequestBody TransactionRequest request) {
+  public Mono<TransactionResponse> processTransaction(@Valid @RequestBody TransactionRequest request) {
     return transactionService.processTransaction(request);
   }
 }

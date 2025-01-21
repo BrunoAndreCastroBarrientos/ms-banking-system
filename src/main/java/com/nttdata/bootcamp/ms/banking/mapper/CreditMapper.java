@@ -14,9 +14,10 @@ public class CreditMapper {
     credit.setCustomerId(request.getCustomerId());
     credit.setCreditType(request.getCreditType());
     credit.setAmount(request.getAmount());
+    //credit.setDebt(request.getDebt());
     credit.setInterestRate(request.getInterestRate());
     credit.setDueDate(request.getDueDate());
-    credit.setStatus(request.getStatus());
+    credit.setStatus(RecordStatus.valueOf("ACTIVE"));
     return credit;
   }
 
@@ -26,6 +27,7 @@ public class CreditMapper {
     response.setCustomerId(credit.getCustomerId());
     response.setCreditType(credit.getCreditType());
     response.setAmount(credit.getAmount());
+    response.setDebt(credit.getDebt());
     response.setInterestRate(credit.getInterestRate());
     response.setDueDate(credit.getDueDate());
     response.setStatus(credit.getStatus());

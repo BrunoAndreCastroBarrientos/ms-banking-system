@@ -52,7 +52,6 @@ public class WalletServiceImpl implements WalletService {
 
   private final WalletRepository walletRepository;
   private final WalletMapper walletMapper;
-  private final BootCoinRepository bootCoinRepository;
 
   public Mono<WalletResponse> sendPayment(WalletRequest request, BigDecimal amount) {
     return walletRepository.findByPhoneNumber(request.getPhoneNumber())
@@ -89,52 +88,6 @@ public class WalletServiceImpl implements WalletService {
   public Mono<WalletResponse> getWalletDetails(String phoneNumber) {
     return walletRepository.findByPhoneNumber(phoneNumber)
         .map(walletMapper::toResponse);
-  }
-
-  public Mono<BootCoinResponse> buyBootCoin(BootCoinRequest request, BigDecimal amount) {
-    return walletRepository.findByPhoneNumber(request.getPhoneNumber())
-        .flatMap(wallet -> {
-          BigDecimal walletBalance = wallet.getBalance();
-
-          if (walletBalance.compareTo(amount) < 0) {
-            return Mono.error(new ApiValidateException("Insufficient funds"));
-          }
-
-          wallet.setBalance(walletBalance.subtract(amount));
-          return walletRepository.save(wallet)
-              .then(bootCoinRepository.save(
-                  BootCoinTransaction.builder()
-                      .phoneNumber(request.getPhoneNumber())
-                      .amount(request.getAmount())
-                      .transactionBootCoinType(TransactionBootCoinType.BUY)
-                      .transactionDate(LocalDateTime.now())
-                      .build()              ));
-        })
-        .map(BootCoinMapper::toResponse);
-  }
-
-  public Mono<BootCoinResponse> sellBootCoin(BootCoinRequest request, BigDecimal amount) {
-    return bootCoinRepository.findUserBootCoinBalance(request.getPhoneNumber())
-        .flatMap(balance -> {
-          if (balance.compareTo(amount) < 0) {
-            return Mono.error(new ApiValidateException("Insufficient BootCoin balance"));
-          }
-
-          return walletRepository.findByPhoneNumber(request.getPhoneNumber())
-              .flatMap(wallet -> {
-                BigDecimal walletBalance = wallet.getBalance();
-                wallet.setBalance(walletBalance.add(amount));
-                return walletRepository.save(wallet)
-                    .then(bootCoinRepository.save(
-                        BootCoinTransaction.builder()
-                            .phoneNumber(request.getPhoneNumber())
-                            .amount(request.getAmount())
-                            .transactionBootCoinType(TransactionBootCoinType.SELL)
-                            .transactionDate(LocalDateTime.now())
-                            .build()              ));
-              });
-        })
-        .map(BootCoinMapper::toResponse);
   }
 
 }

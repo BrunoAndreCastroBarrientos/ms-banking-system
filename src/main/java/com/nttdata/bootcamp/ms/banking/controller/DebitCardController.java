@@ -30,7 +30,7 @@ public class DebitCardController {
   private final DebitCardService debitCardService;
 
   @PostMapping
-  public Mono<DebitCardResponse> createDebitCard(@RequestBody DebitCardRequest request) {
+  public Mono<DebitCardResponse> createDebitCard(@Valid @RequestBody DebitCardRequest request) {
     return debitCardService.createDebitCard(request);
   }
 
@@ -40,7 +40,7 @@ public class DebitCardController {
   }
 
   @PutMapping("/{id}")
-  public Mono<DebitCardResponse> updateDebitCard(@PathVariable String id, @RequestBody DebitCardRequest request) {
+  public Mono<DebitCardResponse> updateDebitCard(@PathVariable String id, @Valid @RequestBody DebitCardRequest request) {
     return debitCardService.updateDebitCard(id, request);
   }
 

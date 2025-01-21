@@ -55,9 +55,10 @@ public class CustomerRequest {
   private String phoneNumber; // Información de contacto (teléfono)
 
   @NotNull(message = "Creation date is mandatory")
+  @FutureOrPresent(message = "Date must be in the future or present")
   private LocalDateTime creationDate; // Fecha de alta del cliente
 
-  @NotNull(message = "Status is mandatory")
-  private RecordStatus status; // Estado del cliente (ACTIVE, INACTIVE)
+  //@NotNull(message = "Status is mandatory")
+  //private RecordStatus status; // Estado del cliente (ACTIVE, INACTIVE)
 }
 

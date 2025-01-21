@@ -6,13 +6,18 @@ import com.nttdata.bootcamp.ms.banking.mapper.DebitCardMapper;
 import com.nttdata.bootcamp.ms.banking.dto.enumeration.RecordStatus;
 import com.nttdata.bootcamp.ms.banking.dto.request.DebitCardRequest;
 import com.nttdata.bootcamp.ms.banking.dto.response.DebitCardResponse;
+import com.nttdata.bootcamp.ms.banking.repository.CustomerRepository;
 import com.nttdata.bootcamp.ms.banking.repository.DebitCardRepository;
 import com.nttdata.bootcamp.ms.banking.service.DebitCardService;
 
 import java.math.BigDecimal;
 import java.util.List;
+
+import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -34,8 +39,8 @@ import reactor.core.publisher.Mono;
  * de la tarjeta de débito y bloquear una
  * tarjeta.</p>
  *
- * @version 1.1
  * @author Bruno Andre Castro Barrientos
+ * @version 1.1
  */
 @Service
 @RequiredArgsConstructor
@@ -43,33 +48,41 @@ public class DebitCardServiceImpl implements DebitCardService {
 
   private final DebitCardRepository debitCardRepository;
   private final DebitCardMapper debitCardMapper;
+  private final CustomerRepository customerRepository;
 
   public Mono<DebitCardResponse> createDebitCard(DebitCardRequest request) {
-    DebitCard debitCard = debitCardMapper.toEntity(request);
-    return debitCardRepository.save(debitCard)
+    return customerRepository.findById(request.getCustomerId())
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .flatMap(customer -> {
+          DebitCard debitCard = debitCardMapper.toEntity(request);
+          return debitCardRepository.save(debitCard)
+              .map(debitCardMapper::toResponse);
+        });
+  }
+
+
+  @Cacheable(value = "debitcard", key = "#id")
+  public Mono<DebitCardResponse> getDebitCardById(String id) {
+    return debitCardRepository.findById(id)
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
         .map(debitCardMapper::toResponse);
   }
 
-  public Mono<DebitCardResponse> getDebitCardById(String id) {
-    return debitCardRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
-.map(debitCardMapper::toResponse);
-  }
-
+  @CachePut(value = "debitcard", key = "#id")
   public Mono<DebitCardResponse> updateDebitCard(String id, DebitCardRequest request) {
     return debitCardRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
-.flatMap(existing -> {
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .flatMap(existing -> {
           DebitCard updated = debitCardMapper.toEntity(request);
           updated.setId(existing.getId());
           return debitCardRepository.save(updated);
         })
         .map(debitCardMapper::toResponse);
   }
-
+  @CachePut(value = "debitcard", key = "#id")
   public Mono<Void> deleteDebitCard(String id) {
     debitCardRepository.findById(id)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
         .flatMap(existing -> {
           existing.setStatus(RecordStatus.INACTIVE);
           debitCardRepository.save(existing);

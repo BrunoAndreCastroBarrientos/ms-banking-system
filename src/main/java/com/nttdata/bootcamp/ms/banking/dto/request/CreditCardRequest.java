@@ -46,7 +46,7 @@ public class CreditCardRequest {
   @NotNull(message = "Cutoff date is mandatory")
   private LocalDate cutoffDate; // Fecha de corte
 
-  @NotNull(message = "Status is mandatory")
-  private RecordStatus status; // Estado (ACTIVE, BLOCKED, etc.)
+  //@NotNull(message = "Status is mandatory")
+  //private RecordStatus status; // Estado (ACTIVE, BLOCKED, etc.)
 }
 

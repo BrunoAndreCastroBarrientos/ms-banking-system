@@ -33,7 +33,7 @@ public class DebitCardRequest {
   @Size(min = 1, message = "At least one associated account is required")
   private List<@Pattern(regexp = "^[A-Za-z0-9]{24}$", message = "Each account ID must be a 24-character alphanumeric string") String> associatedAccounts; // IDs de cuentas bancarias del cliente
 
-  @NotNull(message = "Status is mandatory")
-  private RecordStatus status; // ACTIVE, BLOCKED, etc.
+  //@NotNull(message = "Status is mandatory")
+  //private RecordStatus status; // ACTIVE, BLOCKED, etc.
 
 }

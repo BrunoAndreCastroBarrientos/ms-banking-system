@@ -30,7 +30,7 @@ public class CustomerController {
   private final CustomerService customerService;
 
   @PostMapping
-  public Mono<CustomerResponse> createCustomer(@RequestBody CustomerRequest request) {
+  public Mono<CustomerResponse> createCustomer(@Valid @RequestBody CustomerRequest request) {
     return customerService.createCustomer(request);
   }
 
@@ -45,7 +45,7 @@ public class CustomerController {
   }
 
   @PutMapping("/{id}")
-  public Mono<CustomerResponse> updateCustomer(@PathVariable String id, @RequestBody CustomerRequest request) {
+  public Mono<CustomerResponse> updateCustomer(@PathVariable String id, @Valid @RequestBody CustomerRequest request) {
     return customerService.updateCustomer(id, request);
   }
 

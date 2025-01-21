@@ -9,10 +9,12 @@ import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.mapper.CustomerMapper;
 import com.nttdata.bootcamp.ms.banking.repository.CustomerRepository;
 import com.nttdata.bootcamp.ms.banking.service.CustomerService;
+import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -51,12 +53,14 @@ public class CustomerServiceImpl implements CustomerService {
         .map(customerMapper::toResponse);
   }
 
+  @Cacheable(value = "customer", key = "#id")
   public Mono<CustomerResponse> getCustomerById(String id) {
     return customerRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
-.map(customerMapper::toResponse);
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .map(customerMapper::toResponse);
   }
 
+  @CachePut(value = "customer", key = "#id")
   public Mono<CustomerResponse> updateCustomer(String id, CustomerRequest request) {
     return customerRepository.findById(id)
         .switchIfEmpty(Mono.error(new ApiValidateException("Customer not found.")))
@@ -68,9 +72,10 @@ public class CustomerServiceImpl implements CustomerService {
         .map(customerMapper::toResponse);
   }
 
+  @CachePut(value = "customer", key = "#id")
   public Mono<Void> deleteCustomer(String id) {
     customerRepository.findById(id)
-        .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
         .flatMap(existing -> {
           existing.setStatus(RecordStatus.INACTIVE);
           customerRepository.save(existing);

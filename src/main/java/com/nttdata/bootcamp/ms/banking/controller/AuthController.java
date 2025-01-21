@@ -4,6 +4,7 @@ import com.nttdata.bootcamp.ms.banking.dto.request.UserRequest;
 import com.nttdata.bootcamp.ms.banking.entity.User;
 import com.nttdata.bootcamp.ms.banking.repository.UserRepository;
 import com.nttdata.bootcamp.ms.banking.service.JwtService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class AuthController {
   private final JwtService jwtService;
 
   @PostMapping("/register")
-  public Mono<User> register(@RequestBody UserRequest request) {
+  public Mono<User> register(@Valid @RequestBody UserRequest request) {
     User newUser = new User();
     newUser.setUsername(request.getUsername());
     newUser.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -38,7 +39,7 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public Mono<String> login(@RequestBody UserRequest request) {
+  public Mono<String> login(@Valid @RequestBody UserRequest request) {
     return userRepository.findByUsername(request.getUsername())
         .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
         .map(user -> jwtService.generateToken(user.getUsername()))

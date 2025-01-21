@@ -41,8 +41,9 @@ public class AccountRequest {
   private String currency; // Moneda de la cuenta (ej. USD, EUR, etc.)
 
   @NotNull(message = "Open date is mandatory")
+  @FutureOrPresent(message = "Date must be in the future or present")
   private LocalDateTime openDate; // Fecha de apertura de la cuenta
 
-  @NotNull(message = "Status is mandatory")
-  private RecordStatus status; // Estado de la cuenta (ACTIVE, CLOSED, etc.)
+  //@NotNull(message = "Status is mandatory")
+  //private RecordStatus status; // Estado de la cuenta (ACTIVE, CLOSED, etc.)
 }

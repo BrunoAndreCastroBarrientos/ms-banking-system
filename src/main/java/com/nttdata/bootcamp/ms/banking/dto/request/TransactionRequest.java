@@ -43,5 +43,6 @@ public class TransactionRequest {
   private BigDecimal amount; // Monto de la transacción
 
   @NotNull(message = "Transaction date is mandatory")
+  @FutureOrPresent(message = "Transaction date must be in the future or present")
   private LocalDateTime transactionDate; // Fecha y hora de la transacción
 }

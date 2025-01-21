@@ -36,13 +36,11 @@ public class ReportController {
     return reportService.generateAverageBalanceReport(startDate, endDate);
   }
 
-  // Generar resumen del cliente
   @GetMapping("/client-summary/{clientId}")
   public Mono<ClientSummaryResponse> generateClientSummary(@PathVariable String clientId) {
     return reportService.generateClientSummary(clientId);
   }
 
-  // Obtener las últimas 10 transacciones de una tarjeta
   @GetMapping("/card-transactions/{cardId}/last-10")
   public Mono<CardTransactionResponse> getLast10CardTransactions(@PathVariable String cardId) {
     return reportService.getLast10CardTransactions(cardId);

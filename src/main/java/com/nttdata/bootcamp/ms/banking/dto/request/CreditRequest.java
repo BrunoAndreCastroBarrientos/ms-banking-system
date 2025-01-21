@@ -36,8 +36,6 @@ public class CreditRequest {
   private BigDecimal interestRate; // Tasa de interés aplicada
 
   @NotNull(message = "Due date is mandatory")
+  @FutureOrPresent(message = "Date must be in the future or present")
   private LocalDate dueDate; // Fecha de vencimiento
-
-  @NotNull(message = "Status is mandatory")
-  private RecordStatus status; // Estado del crédito (ACTIVE, CANCELLED, etc.)
 }

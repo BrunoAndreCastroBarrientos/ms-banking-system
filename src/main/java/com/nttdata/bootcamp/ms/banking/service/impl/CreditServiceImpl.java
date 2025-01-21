@@ -9,10 +9,17 @@ import com.nttdata.bootcamp.ms.banking.entity.Credit;
 import com.nttdata.bootcamp.ms.banking.exception.ApiValidateException;
 import com.nttdata.bootcamp.ms.banking.mapper.CreditMapper;
 import com.nttdata.bootcamp.ms.banking.repository.CreditRepository;
+import com.nttdata.bootcamp.ms.banking.repository.CustomerRepository;
 import com.nttdata.bootcamp.ms.banking.service.CreditService;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+import com.nttdata.bootcamp.ms.banking.utility.ConstantUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -39,23 +46,33 @@ public class CreditServiceImpl implements CreditService {
 
   private final CreditRepository creditRepository;
   private final CreditMapper creditMapper;
+  private final CustomerRepository customerRepository;
 
   public Mono<CreditResponse> createCredit(CreditRequest request) {
-    Credit credit = creditMapper.toEntity(request);
-    return creditRepository.save(credit)
-        .map(creditMapper::toResponse);
+    return customerRepository.findById(request.getCustomerId())
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .flatMap(customer -> {
+          Credit credit = creditMapper.toEntity(request);
+          credit.setDebt(request.getAmount()
+              .add(request.getAmount().multiply(request.getInterestRate().divide(BigDecimal.valueOf(100))))
+              .setScale(2, RoundingMode.HALF_UP));
+          return creditRepository.save(credit)
+              .map(creditMapper::toResponse);
+        });
   }
 
+
+  @Cacheable(value = "credit", key = "#id")
   public Mono<CreditResponse> getCreditById(String id) {
     return creditRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
-.map(creditMapper::toResponse);
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .map(creditMapper::toResponse);
   }
-
+  @CachePut(value = "credit", key = "#id")
   public Mono<CreditResponse> updateCredit(String id, CreditRequest request) {
     return creditRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")))
-.flatMap(existing -> {
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)))
+        .flatMap(existing -> {
           Credit updated = creditMapper.toEntity(request);
           updated.setId(existing.getId());
           return creditRepository.save(updated);
@@ -63,8 +80,9 @@ public class CreditServiceImpl implements CreditService {
         .map(creditMapper::toResponse);
   }
 
+  @CachePut(value = "credit", key = "#id")
   public Mono<Void> deleteCredit(String id) {
     return creditRepository.deleteById(id)
-                .switchIfEmpty(Mono.error(new ApiValidateException("Not found.")));
+        .switchIfEmpty(Mono.error(new ApiValidateException(ConstantUtil.NOT_FOUND_MESSAGE)));
   }
 }
