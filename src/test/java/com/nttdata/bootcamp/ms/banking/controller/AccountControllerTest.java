@@ -1,63 +1,104 @@
 package com.nttdata.bootcamp.ms.banking.controller;
 
-import com.nttdata.bootcamp.ms.banking.dto.request.AccountRequest;
-import com.nttdata.bootcamp.ms.banking.dto.request.UserRequest;
-import com.nttdata.bootcamp.ms.banking.dto.response.AccountResponse;
-import com.nttdata.bootcamp.ms.banking.service.AccountService;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebTestClient
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AccountControllerTest {
+public class AccountControllerTest extends BaseIntegrationTest {
 
-  @Autowired
-  private WebTestClient webTestClient;
+  @Test
+  @Order(1)
+  void testCreateAccount() {
+    var request = new Object() {
+      public String customerId = "678d0fe85042e5003358d58b";
+      public String accountType = "SAVINGS"; // (SAVINGS, CHECKING, TIME_DEPOSIT)
+      public BigDecimal balance = BigDecimal.valueOf(1000.00);
+      public String currency = "USD";
+      public LocalDateTime openDate = LocalDateTime.now(); // o futuro/presente
+    };
 
-  private String token;
-
-  @BeforeAll
-  void doLoginAndGetToken() {
-    // Aquí 'webTestClient' YA NO es null, porque el test es de instancia.
-    UserRequest loginRequest = new UserRequest("bcastrob", "Bcastrob123@$");
-
-    String responseToken = webTestClient.post()
-        .uri("/api/auth/login")
-        .bodyValue(loginRequest)
+    webTestClient.post()
+        .uri("/api/accounts")
+        .header("Authorization", authHeader())
+        .bodyValue(request)
         .exchange()
-        .expectStatus().isOk()
-        .expectBody(String.class)
-        .returnResult()
-        .getResponseBody();
-
-    this.token = responseToken;
-    System.out.println("Token obtenido: " + token);
+        .expectStatus().isOk() // o isCreated(), según tu implementación
+        .expectBody()
+        .jsonPath("$.id").exists();
   }
 
   @Test
+  @Order(2)
   void testGetAllAccounts() {
     webTestClient.get()
         .uri("/api/accounts")
-        .header("Authorization", "Bearer " + token)
+        .header("Authorization", authHeader())
         .exchange()
-        .expectStatus().isOk();
+        .expectStatus().isOk()
+        .expectBody()
+        .jsonPath("$").isArray();
+  }
+
+  @Test
+  @Order(3)
+  void testGetAccountById() {
+    String accountId = "1234567890abcdef12345678";
+
+    webTestClient.get()
+        .uri("/api/accounts/" + accountId)
+        .header("Authorization", authHeader())
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody()
+        .jsonPath("$.id").isEqualTo(accountId);
+  }
+
+  @Test
+  @Order(4)
+  void testGetAccountsByCustomerId() {
+    String customerId = "678d0fe85042e5003358d58b";
+
+    webTestClient.get()
+        .uri("/api/accounts/customer/" + customerId)
+        .header("Authorization", authHeader())
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody()
+        .jsonPath("$").isArray();
+  }
+
+  @Test
+  @Order(5)
+  void testUpdateAccount() {
+    String accountId = "1234567890abcdef12345678";
+    var request = new Object() {
+      public String customerId = "0123456789abcdef01234567";
+      public String accountType = "CHECKING";
+      public BigDecimal balance = BigDecimal.valueOf(5000.00);
+      public String currency = "EUR";
+      public LocalDateTime openDate = LocalDateTime.now().plusDays(1);
+    };
+
+    webTestClient.put()
+        .uri("/api/accounts/" + accountId)
+        .header("Authorization", authHeader())
+        .bodyValue(request)
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody()
+        .jsonPath("$.accountType").isEqualTo("CHECKING");
+  }
+
+  @Test
+  @Order(6)
+  void testDeleteAccount() {
+    String accountId = "1234567890abcdef12345678";
+
+    webTestClient.delete()
+        .uri("/api/accounts/" + accountId)
+        .header("Authorization", authHeader())
+        .exchange()
+        .expectStatus().isOk(); // o isNoContent()
   }
 }
-

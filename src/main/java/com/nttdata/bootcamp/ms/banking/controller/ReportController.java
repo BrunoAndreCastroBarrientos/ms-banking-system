@@ -23,7 +23,7 @@ import java.util.List;
  * @version 1.0
  */
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/api/report")
 @RequiredArgsConstructor
 public class ReportController {
 
