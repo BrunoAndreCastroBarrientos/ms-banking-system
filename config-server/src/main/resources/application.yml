@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/BrunoAndreCastroBarrientos/banking-system-properties.git
+          clone-on-start: true
+          default-label: main
+server:
+  port: 8888

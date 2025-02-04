@@ -1,0 +1,1380 @@
+{
+	"info": {
+		"_postman_id": "3be22b8f-4616-4933-aeb0-440ec28dab31",
+		"name": "BANKING NTT DATA BOOTCAMP - BRUNO ANDRE CASTRO BARRIENTOS",
+		"description": "Colección que agrupa todos los grupos de endpoints (1 a 9) con header Authorization.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40206048"
+	},
+	"item": [
+		{
+			"name": "1. Accounts",
+			"item": [
+				{
+					"name": "Crear cuenta (POST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"accountType\": \"SAVINGS\",\n  \"balance\": 1000.00,\n  \"currency\": \"USD\",\n  \"openDate\": \"2025-12-31T00:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/accounts",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar todas las cuentas (GET)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/accounts",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener cuenta por ID (GET)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/accounts/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"accounts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener cuentas por Customer ID (GET)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/accounts/customer/:customerId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"accounts",
+								"customer",
+								":customerId"
+							],
+							"variable": [
+								{
+									"key": "customerId"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar cuenta (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"accountType\": \"CHECKING\",\n  \"balance\": 2500.00,\n  \"currency\": \"EUR\",\n  \"openDate\": \"2025-12-31T00:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/accounts/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"accounts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar cuenta (DELETE)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/accounts/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"accounts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Customers",
+			"item": [
+				{
+					"name": "Crear cliente (POST) - PERSONAL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerType\": \"PERSONAL\",\n  \"subType\": \"VIP\",\n  \"firstName\": \"Carlos\",\n  \"lastName\": \"Ramirez\",\n  \"identificationNumber\": \"ABC123\",\n  \"identificationType\": \"DNI\",\n  \"email\": \"carlos@example.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"creationDate\": \"2025-12-31T10:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear cliente (POST) - ENTERPRISE",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerType\": \"ENTERPRISE\",\n  \"subType\": \"PYME\",\n  \"businessName\": \"MyBusiness2025\",\n  \"identificationNumber\": \"ENT12345\",\n  \"identificationType\": \"PASSPORT\",\n  \"email\": \"enterprise@example.com\",\n  \"phoneNumber\": \"+9876543210\",\n  \"creationDate\": \"2025-12-31T10:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar todos los clientes (GET)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener cliente por ID (GET)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiY2FzdHJvYiIsImlhdCI6MTczNzQwMzA0NCwiZXhwIjoxNzM3NDM5MDQ0fQ.cLw-P8-bmYrIYWkufZNqcQ0FEZy_4LZXrp6Gi4A0Wp0"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/customers/678c428121fb4e06f3cec843",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"customers",
+								"678c428121fb4e06f3cec843"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar cliente (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerType\": \"PERSONAL\",\n  \"subType\": \"STANDARD\",\n  \"firstName\": \"María\",\n  \"lastName\": \"Lopez\",\n  \"identificationNumber\": \"ML123456\",\n  \"identificationType\": \"CEX\",\n  \"email\": \"maria.lopez@example.com\",\n  \"phoneNumber\": \"+34987654321\",\n  \"creationDate\": \"2025-12-31T10:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/customers/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"customers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar cliente (DELETE)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/customers/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"customers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Bootcoin",
+			"item": [
+				{
+					"name": "Comprar BootCoin (POST /buy)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneNumber\": \"+123456789\",\n  \"amount\": 100.00\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/bootcoin/buy?amount=100.00",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"bootcoin",
+								"buy"
+							],
+							"query": [
+								{
+									"key": "amount",
+									"value": "100.00"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vender BootCoin (POST /sell)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phoneNumber\": \"+123456789\",\n  \"amount\": 50.50\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/bootcoin/sell?amount=50.50",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"bootcoin",
+								"sell"
+							],
+							"query": [
+								{
+									"key": "amount",
+									"value": "50.50"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. CreditCard",
+			"item": [
+				{
+					"name": "Crear tarjeta de crédito (POST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cardNumber\": \"1234567890123456\",\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"type\": \"CREDIT\",\n  \"cardType\": \"PERSONAL\",\n  \"creditLimit\": 5000.00,\n  \"balance\": 0.00,\n  \"cutoffDate\": \"2025-12-31\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/cards/credit",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"credit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener tarjeta de crédito (GET)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/cards/credit/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"credit",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar tarjeta de crédito (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cardNumber\": \"9876543210987654\",\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"type\": \"CREDIT\",\n  \"cardType\": \"ENTERPRISE\",\n  \"creditLimit\": 10000.00,\n  \"balance\": 2000.00,\n  \"cutoffDate\": \"2026-01-15\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/cards/credit/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"credit",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar tarjeta de crédito (DELETE)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/cards/credit/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"credit",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Credits",
+			"item": [
+				{
+					"name": "Crear crédito (POST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"creditType\": \"PERSONAL\",\n  \"amount\": 5000.00,\n  \"interestRate\": 12.5,\n  \"dueDate\": \"2025-12-31\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/credits",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"credits"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener crédito por ID (GET)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/credits/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"credits",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar crédito (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"creditType\": \"ENTERPRISE\",\n  \"amount\": 10000.00,\n  \"interestRate\": 10.0,\n  \"dueDate\": \"2026-01-15\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/credits/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"credits",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar crédito (DELETE)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/credits/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"credits",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. DebitCard",
+			"item": [
+				{
+					"name": "Crear tarjeta de débito (POST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"type\": \"DEBIT\",\n  \"cardType\": \"PERSONAL\",\n  \"associatedAccounts\": [\n    \"def456abc789ghi012jkl345\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/cards/debit",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"debit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener tarjeta de débito por ID (GET)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/cards/debit/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"debit",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar tarjeta de débito (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"abc123def456ghi789jkl012\",\n  \"type\": \"DEBIT\",\n  \"cardType\": \"ENTERPRISE\",\n  \"associatedAccounts\": [\n    \"zyx987uvw654rst321opq000\",\n    \"def456abc789ghi012jkl345\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/cards/debit/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"debit",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar tarjeta de débito (DELETE)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/cards/debit/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"cards",
+								"debit",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Report",
+			"item": [
+				{
+					"name": "Reporte de balance promedio (GET /average-balance)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/report/average-balance?startDate=2025-01-01T00:00:00&endDate=2025-01-31T23:59:59",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"report",
+								"average-balance"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-01-01T00:00:00"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-01-31T23:59:59"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resumen de cliente (GET /client-summary/{clientId})",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/report/client-summary/:clientId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"report",
+								"client-summary",
+								":clientId"
+							],
+							"variable": [
+								{
+									"key": "clientId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Últimas 10 transacciones de tarjeta (GET /card-transactions/{cardId}/last-10)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/report/card-transactions/:cardId/last-10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"report",
+								"card-transactions",
+								":cardId",
+								"last-10"
+							],
+							"variable": [
+								{
+									"key": "cardId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "8. Transactions",
+			"item": [
+				{
+					"name": "DEPOSIT",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiY2FzdHJvYiIsImlhdCI6MTczNzQ3MDQ2MiwiZXhwIjoxNzM3NTA2NDYyfQ.BVoSx5yrRTwYdeXklmzNjFV5KB1vEZHN8-NBCfugs6s"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionType\": \"DEPOSIT\",\n  \"destinationAccountId\": \"678c448bb4d06d224ad80ed0\",\n  \"amount\": 100.50,\n  \"transactionDate\": \"2025-01-31T10:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/transactions/process",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"transactions",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "WITHDRAWAL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiY2FzdHJvYiIsImlhdCI6MTczNzQwMzA0NCwiZXhwIjoxNzM3NDM5MDQ0fQ.cLw-P8-bmYrIYWkufZNqcQ0FEZy_4LZXrp6Gi4A0Wp0"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionType\": \"WITHDRAWAL\",\n  \"originAccountId\": \"678c448bb4d06d224ad80ed0\",\n  \"amount\": 50.25,\n  \"transactionDate\": \"2025-01-31T11:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/transactions/process",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"transactions",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TRANSFER",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionType\": \"TRANSFER\",\n  \"originAccountId\": \"abc123def456ghi789jkl012\",\n  \"destinationAccountId\": \"zzz888yyy777xxx666www555\",\n  \"amount\": 500.00,\n  \"transactionDate\": \"2025-01-31T12:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/transactions/process",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"transactions",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CREDIT_PAYMENT",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionType\": \"CREDIT_PAYMENT\",\n  \"originAccountId\": \"abc123def456ghi789jkl012\",\n  \"creditId\": \"ccc222ddd333eee444fff555\",\n  \"amount\": 300.00,\n  \"transactionDate\": \"2025-01-31T13:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/transactions/process",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"transactions",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CREDIT_CARD_PAYMENT",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionType\": \"CREDIT_CARD_PAYMENT\",\n  \"originAccountId\": \"abc123def456ghi789jkl012\",\n  \"creditCardId\": \"fff555ggg666hhh777iii888\",\n  \"amount\": 200.75,\n  \"transactionDate\": \"2025-01-31T14:00:00\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/transactions/process",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"transactions",
+								"process"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "9. Wallets",
+			"item": [
+				{
+					"name": "Enviar pago (POST /send-payment)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identificationNumber\": \"ABC123\",\n  \"phoneNumber\": \"+123456789\",\n  \"email\": \"test@example.com\",\n  \"balance\": 500.00\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/wallets/send-payment?amount=50.00",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"wallets",
+								"send-payment"
+							],
+							"query": [
+								{
+									"key": "amount",
+									"value": "50.00"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recibir pago (POST /receive-payment)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"identificationNumber\": \"ABC123\",\n  \"phoneNumber\": \"+123456789\",\n  \"email\": \"test@example.com\",\n  \"balance\": 500.00\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/wallets/receive-payment?amount=100.00",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"wallets",
+								"receive-payment"
+							],
+							"query": [
+								{
+									"key": "amount",
+									"value": "100.00"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener detalles de la billetera (GET /{phoneNumber})",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <TOKEN>"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8090/api/wallets/:phoneNumber",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"wallets",
+								":phoneNumber"
+							],
+							"variable": [
+								{
+									"key": "phoneNumber"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "10. Auth",
+			"item": [
+				{
+					"name": "Registrar",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"bcastrob\",\r\n    \"password\": \"Bcastrob123@$\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"bcastrob\",\r\n    \"password\": \"Bcastrob123@$\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8090/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
